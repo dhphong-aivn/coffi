@@ -1,0 +1,19 @@
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# IDE
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Antigravity & Docs (Keep local, ignore from Git)
+.agents/
+final_prd.md
+
+# Test files
+test_*.py
+pytest.ini

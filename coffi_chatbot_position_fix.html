@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cof fi | Modern Alchemist Ordering Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script defer="" src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#dddad4",
+              "secondary-container": "#fbdbb0",
+              "surface": "#fdf9f3",
+              "primary-fixed": "#f9ddd4",
+              "surface-tint": "#6e5a53",
+              "surface-container-high": "#ebe8e2",
+              "surface-container-highest": "#e6e2dc",
+              "on-primary-container": "#98817a",
+              "tertiary": "#050700",
+              "on-secondary-container": "#765f3d",
+              "surface-bright": "#fdf9f3",
+              "outline": "#817471",
+              "secondary-fixed": "#feddb3",
+              "on-secondary-fixed-variant": "#584324",
+              "on-error-container": "#93000a",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#f7f3ed",
+              "background": "#fdf9f3",
+              "surface-container": "#f1ede7",
+              "tertiary-fixed-dim": "#c8c8b0",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#281801",
+              "on-tertiary-container": "#878873",
+              "inverse-surface": "#31302d",
+              "primary-fixed-dim": "#dcc1b9",
+              "on-primary-fixed-variant": "#55433c",
+              "primary": "#0d0402",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "on-background": "#1c1c18",
+              "tertiary-fixed": "#e4e4cc",
+              "secondary-fixed-dim": "#e1c299",
+              "inverse-on-surface": "#f4f0ea",
+              "on-primary": "#ffffff",
+              "outline-variant": "#d2c3bf",
+              "surface-variant": "#e6e2dc",
+              "on-surface": "#1c1c18",
+              "on-tertiary-fixed": "#1b1d0e",
+              "primary-container": "#2a1b16",
+              "secondary": "#725a39",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-container": "#1e2011",
+              "inverse-primary": "#dcc1b9",
+              "on-secondary": "#ffffff",
+              "on-primary-fixed": "#271813",
+              "on-tertiary-fixed-variant": "#474836",
+              "on-surface-variant": "#4f4441"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .serif { font-family: 'Noto Serif', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d2c3bf; border-radius: 10px; }
+        [x-cloak] { display: none !important; }
+    </style>
+<style>
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .animate-breathe {
+    animation: breathe 3s ease-in-out infinite;
+  }
+</style></head>
+<body class="bg-background text-on-surface min-h-screen flex overflow-hidden" x-data="{ currentView: 'menu', orderTab: 'history', expandedFaq: null, showCancelDialog: false, showRefundMsg: false, showReorderMsg: false, showToast: false }">
+<!-- Sidebar (Left Column) -->
+<aside class="w-[280px] h-screen sticky left-0 top-0 bg-surface-container-low flex flex-col py-12 px-8 space-y-8 z-50">
+<div class="flex flex-col gap-2">
+<h1 class="text-3xl font-bold font-headline text-primary-container">Cof fi</h1>
+<p class="text-secondary text-sm font-medium">Modern Alchemist</p>
+</div>
+<nav class="flex-1 flex flex-col space-y-2">
+<button :class="currentView === 'menu' ? 'bg-white/50 text-primary-container font-bold shadow-sm' : 'text-secondary hover:bg-white/50'" @click="currentView = 'menu'" class="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-headline text-base tracking-tight">Menu</span>
+</button>
+<button :class="currentView === 'orders' ? 'bg-white/50 text-primary-container font-bold shadow-sm' : 'text-secondary hover:bg-white/50'" @click="currentView = 'orders'" class="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-headline text-base tracking-tight">Đơn hàng của tôi</span>
+</button>
+<button :class="currentView === 'tracking' ? 'bg-white/50 text-primary-container font-bold shadow-sm' : 'text-secondary hover:bg-white/50'" @click="currentView = 'tracking'" class="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-headline text-base tracking-tight">Order Tracking</span>
+</button>
+<button :class="currentView === 'settings' ? 'bg-white/50 text-primary-container font-bold shadow-sm' : 'text-secondary hover:bg-white/50'" @click="currentView = 'settings'" class="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-headline text-base tracking-tight">Settings</span>
+</button>
+<button :class="currentView === 'support' ? 'bg-white/50 text-primary-container font-bold shadow-sm' : 'text-secondary hover:bg-white/50'" @click="currentView = 'support'" class="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-headline text-base tracking-tight">Chat &amp; Support</span>
+</button>
+<button :class="currentView === 'help' ? 'bg-white/50 text-primary-container font-bold shadow-sm' : 'text-secondary hover:bg-white/50'" @click="currentView = 'help'" class="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-headline text-base tracking-tight">Help Center</span>
+</button>
+</nav>
+<div class="pt-8">
+<button class="w-full flex items-center gap-4 py-3 px-4 rounded-xl text-secondary hover:bg-error/10 hover:text-error transition-all duration-300 active:scale-95">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-headline text-base tracking-tight">Logout</span>
+</button>
+</div>
+</aside>
+<!-- Main Content (Middle Column) -->
+<main class="flex-1 overflow-y-auto px-12 py-10 bg-background">
+<!-- View: Menu -->
+<div x-cloak="" x-show="currentView === 'menu'">
+<!-- Search & Filter -->
+<header class="flex items-center gap-6 mb-12">
+<div class="flex-1 flex items-center bg-surface-container-highest px-6 py-4 rounded-xl gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body text-sm placeholder:text-secondary/60" placeholder="Search your brew..." type="text"/>
+</div>
+<button class="bg-primary-container text-white px-8 py-4 rounded-xl flex items-center gap-2 hover:opacity-90 transition-opacity active:scale-95">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+<span class="font-body text-sm font-semibold uppercase tracking-wider">Filter</span>
+</button>
+</header>
+<!-- Category Tabs -->
+<div class="flex gap-4 mb-10 overflow-x-auto pb-2 scrollbar-hide">
+<button class="bg-primary-container text-on-primary px-8 py-3 rounded-full font-body text-sm font-medium transition-all">Coffee</button>
+<button class="bg-surface-container-high text-secondary px-8 py-3 rounded-full font-body text-sm font-medium hover:bg-surface-container-highest transition-all">Non Coffee</button>
+<button class="bg-surface-container-high text-secondary px-8 py-3 rounded-full font-body text-sm font-medium hover:bg-surface-container-highest transition-all">Snack</button>
+<button class="bg-surface-container-high text-secondary px-8 py-3 rounded-full font-body text-sm font-medium hover:bg-surface-container-highest transition-all">Dessert</button>
+</div>
+<h2 class="font-headline text-4xl text-primary-container mb-8">Coffee Menu</h2>
+<!-- Product Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-8 pb-12">
+<!-- Product Cards exactly as source -->
+<!-- Macchiato -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="top view of a small ceramic cup of espresso macchiato" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4UFjVQFEVBk5YRQTiz6iiMH8N1z9yu17fOJv6f4xWtreqOCPXtDYOLDUcEN0NhLuA6xkVSDFU8AIBexDQNjOO_Pj92t6MrUi4ux1QydEPDvbYniY6XAlIK1C1B9cM-1bXfRFf1ExDU2HdR5I7RJFL_Cn_vBKyRNp-lIT0Jg3Ij3d2G8CnLGLU6gGvDQuJ896Hbw_plCKXujmqdzpQ8L_S1gy8Edh-nj-wNXW7iPZMXfWKIMIjdPhjPZHR4v4slPpGuUWA55hJc0U"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline text-xl text-primary-container">Macchiato</h3>
+<p class="text-secondary font-bold font-body text-lg">80 birr</p>
+</div>
+<div class="flex items-center bg-surface-container px-3 py-1 rounded-full gap-3">
+<button class="text-primary-container hover:text-secondary"><span class="material-symbols-outlined text-sm" data-icon="remove">remove</span></button>
+<span class="text-sm font-bold font-body">1</span>
+<button class="text-primary-container hover:text-secondary"><span class="material-symbols-outlined text-sm" data-icon="add">add</span></button>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-primary-container text-white">Small</button>
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-surface-container text-secondary">Medium</button>
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-surface-container text-secondary">Large</button>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-2">Add to cart</button>
+</div>
+<!-- Iced Chocolate -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="tall glass filled with cold rich iced chocolate drink" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzD1sKPXESuH3tWP488WEFUPHNKc7x23d8beE4EGdYNAYICKLGxZ84l1AmrECVWEm5W1H_Z1b5zUw3ESKJB-j9hOLPvVU7ajPOFRDLiZ1a2HuBkl8qIxvkWcGnhACXsbLeNYD0Ua4AJ4EouHh6-8Xw9hOEM0w5edJd1rkpDzzLnAu3XBsvKTmg_3t7qEc6bim9uCQF7pJr3aV3gjFLOURVuPLIzvHbbVJxVe8af0wB-JPEhBgqaRKg_4242lruoly-vLJkA-LJM0Y"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline text-xl text-primary-container">Iced Chocolate</h3>
+<p class="text-secondary font-bold font-body text-lg">150 birr</p>
+</div>
+<div class="flex items-center bg-surface-container px-3 py-1 rounded-full gap-3">
+<button class="text-primary-container hover:text-secondary"><span class="material-symbols-outlined text-sm" data-icon="remove">remove</span></button>
+<span class="text-sm font-bold font-body">1</span>
+<button class="text-primary-container hover:text-secondary"><span class="material-symbols-outlined text-sm" data-icon="add">add</span></button>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-surface-container text-secondary">Small</button>
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-surface-container text-secondary">Medium</button>
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-primary-container text-white">Large</button>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-2">Add to cart</button>
+</div>
+<!-- Cappuccino -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="creamy cappuccino" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzhlHpEsL7pqoNrk_cE3_aTaED8ZYsNRgZ2keQ1KHW1GOQwgFJDX3OcQyxnqn6KoAD-6XJ1lLIVKYSTFwndkH0vfIyhzuNkQ9rDKrYwHOpjV5QGBLWmvrVo1KKr0PJQvy86l4kjdMgXe2cvBZyEpkA_o1l-1UZmAB5HuUzvAw22HFrr_FiSHsqAgVrU8j7F6WcJCNePN6MZQPHmccQi6MVLrZ7C9Mwg5f53ccT6AoddAf-wHfPz9jhoIUgVEb0LBCiKl-lN0onvrQ"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline text-xl text-primary-container">Cappuccino</h3>
+<p class="text-secondary font-bold font-body text-lg">95 birr</p>
+</div>
+<div class="flex items-center bg-surface-container px-3 py-1 rounded-full gap-3">
+<button class="text-primary-container hover:text-secondary"><span class="material-symbols-outlined text-sm" data-icon="remove">remove</span></button>
+<span class="text-sm font-bold font-body">0</span>
+<button class="text-primary-container hover:text-secondary"><span class="material-symbols-outlined text-sm" data-icon="add">add</span></button>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-surface-container text-secondary">Small</button>
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-primary-container text-white">Medium</button>
+<button class="flex-1 py-2 text-xs font-bold font-body rounded-full bg-surface-container text-secondary">Large</button>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-2">Add to cart</button>
+</div>
+<!-- Espresso -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="rich dark espresso shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnkpKXPEmn2vNhbJGZAjWVcdLVoY8GlztwrR7xbJhuIZEJbMG90y-U8TguFSYd1m7dPOKelnJx34Fd2AHGmm94WUUy-_08xaGesVWXwEIEgYdC8wv3kXGrOgzSGKNPFL2spaFbeVDZf_-YMdQisvoLpxeyiY5Dy2G5aWgoNzXa5uHJit65zvfKgLMCNiNHjjJrgWPNzILkr5EjAwfvxR7VwVfD7-BZXKL4P1gE2FozL0j8qDbxtdqL1WrQhYSU5zX53Jqs8dk290w"/>
+</div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-xl text-primary-container">Espresso</h3>
+<p class="text-secondary font-bold font-body text-lg">60 birr</p>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold mt-auto">Add to cart</button>
+</div>
+<!-- Single-Origin Pour Over -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="artisanal pour over coffee" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0qyIHO7L7gKzRvXntUR8DsXxEs9dvFbmd_E5Hj6G1DVVLKUk52-YWRop36lV9IUJ3Iyiqr4FvfRXIl5DNkQqYEp2PSwcC2puvDn5CrTSJgSq2e-qh5AfmJE4R2_RLI0Tbb0ZXNuiWKZLqRwpO-Bgcu_vq7EtIlNEg9fRfJyDixo1H5hmiAKtk3vpOkGaLiZKJaXSEZrFc35MfD2Rw-cJdGzfaNKuOnBeqiDAM78_gRgbCSy7TkYx9UkGLIhqwxH3qso8z0nMvVNo"/>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline text-xl text-primary-container">Single-Origin Pour Over</h3>
+<p class="text-secondary text-sm font-body">Artisanal, clean profile with berry notes</p>
+<p class="text-secondary font-bold font-body text-lg mt-1">120 birr</p>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-auto">Add to cart</button>
+</div>
+<!-- Lavender Honey Latte -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="latte in a cup with dried lavender buds" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRpqIgb37HjdwpxLnOPh4ge4YU05T98GqHt6JPhRCJjTgI2FgZeuCzGiiHAc1aov_LdQS0TbrS6evZkxZs8-Av3mSL8uidVZGuScsRlfU8Gg_J62KGqoGihjVN8d3CcKQOfgN9XGARoRcOiyiC-FaCryRpBO40GLzh81NoLgq5tu_16tkiGBv9Szi9AAX6t4BZG1j4Ll0KE9W7kYQgSTTyDY7W3MwRu9KmL-9KhR3wU5Div1gkJ0hq6ESB60b2GnT0cAy48zr0Oek"/>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline text-xl text-primary-container">Lavender Honey Latte</h3>
+<p class="text-secondary text-sm font-body">Specialty, floral notes &amp; local honey</p>
+<p class="text-secondary font-bold font-body text-lg mt-1">145 birr</p>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-auto">Add to cart</button>
+</div>
+<!-- Ceremonial Grade Matcha -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="vibrant green matcha tea" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBb72Rlw1mvcLItoBP4UErouofpmerfXAPJ0PFEv1_48cbG5dx2lSv9Dao5cMP-U1b6nCvGk7QSnvfQ0XG6UV9ecyiiWaqLhasyhY0IXd06menRANCgZKfn-8ZroRBb-FAOMSMfmVuisYhZeZzLSHTsbbhE9I7gDu2_cDpVR4jTJ7T6zOmRoWszXe5JIcPuJ-0tSponQWPvcnE9jKEcIThMatGpyuuQZjyg-YfeJf3TP7C6R9W8VOKaoEGTWXnzDwQvHbPGYsaix5Y"/>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline text-xl text-primary-container">Ceremonial Grade Matcha</h3>
+<p class="text-secondary text-sm font-body">Whisked to perfection, earthy umami</p>
+<p class="text-secondary font-bold font-body text-lg mt-1">160 birr</p>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-auto">Add to cart</button>
+</div>
+<!-- Hibiscus Ginger Refresher -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="sparkling red hibiscus drink" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoiuxCYD1v06pE5_ktJf-dpTtlDfESCy62-1LqtGEdzxSHRb4NNjeRDfed0W9AwAI3ze7Sb6m_e-AAvHaXloIv5t3CbiS6oa5d2icAKXCvkYqCSuMtYgPIZLxywWnlnmXlh-JYAVmSg-uu26SDGs20mx3FhvqPEg8lmDLo82vBEs6I-8wdjBg5GiEv_yQjwrxMDVvHMemoHZUvCMkSlfDMQwr7TCfFMcOVE4-zeUU8z0tSdLS2gF1o6GcNzl0SKeCLhkcc0-qvy6I"/>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline text-xl text-primary-container">Hibiscus Ginger Refresher</h3>
+<p class="text-secondary text-sm font-body">Sparkling, tart with a ginger kick</p>
+<p class="text-secondary font-bold font-body text-lg mt-1">110 birr</p>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-auto">Add to cart</button>
+</div>
+<!-- Herbed Goat Cheese Croissant -->
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col gap-4 shadow-sm hover:shadow-xl transition-shadow duration-500 group">
+<div class="w-full aspect-square overflow-hidden rounded-lg bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="flaky croissant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqbE8_1j37OrQzpdjgLDCIMaqAW7OOuMMwGEg7tapowxMPQBFCl7v3Aaa-L_UsICGFhymSajSD8VL3oguhfwcegunVpgJRh_MgfRSv-YDJlLxgCKEkk6mATgKWeHQq6Npbe9OdbGY0UxUF5gL3fjvhI82Xx4Fnh7eRC-69c4-GV6P0NeP8Gvq-7BJiWWCPW-DwkCd9idu68BS0wbgMgLGMHPpxbH_Bk3oZTSO-sp7B0wFtlSCUGG3kLB4IkisxzWtxBgl9qUlAvis"/>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline text-xl text-primary-container">Herbed Goat Cheese Croissant</h3>
+<p class="text-secondary text-sm font-body">Savory, flaky, locally sourced cheese</p>
+<p class="text-secondary font-bold font-body text-lg mt-1">95 birr</p>
+</div>
+<button class="w-full py-4 bg-primary-container text-white rounded-xl font-body font-bold hover:bg-primary transition-colors active:scale-95 mt-auto">Add to cart</button>
+</div>
+</div>
+</div>
+<!-- View: My Orders -->
+<div x-cloak x-show="currentView === 'orders'">
+<h2 class="font-headline text-4xl text-primary-container mb-8">Đơn hàng của tôi</h2>
+<!-- Order Tabs -->
+<div class="flex gap-2 mb-10 bg-surface-container-high p-1 rounded-full w-fit">
+<button @click="orderTab = 'ongoing'" :class="orderTab === 'ongoing' ? 'bg-primary-container text-white shadow-md' : 'bg-surface-container-high text-secondary hover:bg-white/50'" class="px-8 py-2.5 rounded-full font-body text-sm font-bold transition-all cursor-pointer">Đang xử lý</button>
+<button @click="orderTab = 'history'" :class="orderTab === 'history' ? 'bg-primary-container text-white shadow-md' : 'bg-surface-container-high text-secondary hover:bg-white/50'" class="px-8 py-2.5 rounded-full font-body text-sm font-bold transition-all cursor-pointer">Lịch sử</button>
+</div>
+<!-- Ongoing Orders (Order Tracking Stepper) -->
+<div x-show="orderTab === 'ongoing'" class="space-y-6 pb-12">
+<div class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm">
+<div class="flex items-center gap-3 mb-2">
+<h4 class="font-headline text-xl text-primary-container">Order #CF-2025</h4>
+<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Đang xử lý</span>
+</div>
+<p class="text-secondary/70 text-sm mb-6">01 Apr 2026, 10:30 AM</p>
+<!-- 4-Step Stepper -->
+<div class="flex items-center justify-between mb-8 px-4">
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary-container text-white flex items-center justify-center"><span class="material-symbols-outlined text-lg">check</span></div>
+<span class="text-xs font-bold text-primary-container text-center">Chờ xác nhận</span>
+</div>
+<div class="flex-1 h-0.5 bg-primary-container mx-2"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-secondary flex items-center justify-center"><span class="material-symbols-outlined text-lg">coffee_maker</span></div>
+<span class="text-xs font-medium text-secondary text-center">Đang pha chế</span>
+</div>
+<div class="flex-1 h-0.5 bg-surface-container-high mx-2"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-secondary flex items-center justify-center"><span class="material-symbols-outlined text-lg">local_shipping</span></div>
+<span class="text-xs font-medium text-secondary text-center">Ready/Đang giao</span>
+</div>
+<div class="flex-1 h-0.5 bg-surface-container-high mx-2"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-secondary flex items-center justify-center"><span class="material-symbols-outlined text-lg">done_all</span></div>
+<span class="text-xs font-medium text-secondary text-center">Hoàn thành</span>
+</div>
+</div>
+<!-- Order Summary -->
+<div class="border-t border-outline-variant/20 pt-6 space-y-3">
+<h5 class="font-headline text-lg text-primary-container">Tóm tắt đơn hàng</h5>
+<div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-lg">location_on</span><span class="text-secondary">123 Nguyễn Huệ, Q.1, TP.HCM</span></div>
+<div class="flex items-center gap-4 mt-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden"><img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzhlHpEsL7pqoNrk_cE3_aTaED8ZYsNRgZ2keQ1KHW1GOQwgFJDX3OcQyxnqn6KoAD-6XJ1lLIVKYSTFwndkH0vfIyhzuNkQ9rDKrYwHOpjV5QGBLWmvrVo1KKr0PJQvy86l4kjdMgXe2cvBZyEpkA_o1l-1UZmAB5HuUzvAw22HFrr_FiSHsqAgVrU8j7F6WcJCNePN6MZQPHmccQi6MVLrZ7C9Mwg5f53ccT6AoddAf-wHfPz9jhoIUgVEb0LBCiKl-lN0onvrQ" alt="Cappuccino"/></div>
+<div><p class="font-body text-sm font-bold text-primary-container">Cappuccino x1</p><p class="text-secondary text-xs">95 birr</p></div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg overflow-hidden"><img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqbE8_1j37OrQzpdjgLDCIMaqAW7OOuMMwGEg7tapowxMPQBFCl7v3Aaa-L_UsICGFhymSajSD8VL3oguhfwcegunVpgJRh_MgfRSv-YDJlLxgCKEkk6mATgKWeHQq6Npbe9OdbGY0UxUF5gL3fjvhI82Xx4Fnh7eRC-69c4-GV6P0NeP8Gvq-7BJiWWCPW-DwkCd9idu68BS0wbgMgLGMHPpxbH_Bk3oZTSO-sp7B0wFtlSCUGG3kLB4IkisxzWtxBgl9qUlAvis" alt="Croissant"/></div>
+<div><p class="font-body text-sm font-bold text-primary-container">Herbed Goat Cheese Croissant x1</p><p class="text-secondary text-xs">95 birr</p></div>
+</div>
+</div>
+<!-- Cancel Button -->
+<div class="mt-6 flex items-center justify-between">
+<p class="text-xs text-secondary/60 italic">Lưu ý: Bạn chỉ có thể hủy khi đơn ở trạng thái "Chờ xác nhận".</p>
+<button @click="showCancelDialog = true" class="border-2 border-error/30 text-error px-6 py-2.5 rounded-[24px] font-body text-sm font-bold hover:bg-error/5 transition-all active:scale-95">Hủy đơn</button>
+</div>
+</div>
+</div>
+<!-- History Orders -->
+<div x-show="orderTab === 'history'" class="space-y-6 pb-12">
+<!-- Orders List -->
+<div class="space-y-6 pb-12">
+<!-- Order Card 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm flex flex-col md:flex-row gap-8 items-center">
+<div class="flex -space-x-4">
+<div class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
+<img alt="Single-Origin Pour Over" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0qyIHO7L7gKzRvXntUR8DsXxEs9dvFbmd_E5Hj6G1DVVLKUk52-YWRop36lV9IUJ3Iyiqr4FvfRXIl5DNkQqYEp2PSwcC2puvDn5CrTSJgSq2e-qh5AfmJE4R2_RLI0Tbb0ZXNuiWKZLqRwpO-Bgcu_vq7EtIlNEg9fRfJyDixo1H5hmiAKtk3vpOkGaLiZKJaXSEZrFc35MfD2Rw-cJdGzfaNKuOnBeqiDAM78_gRgbCSy7TkYx9UkGLIhqwxH3qso8z0nMvVNo"/>
+</div>
+<div class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
+<img alt="Herbed Goat Cheese Croissant" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqbE8_1j37OrQzpdjgLDCIMaqAW7OOuMMwGEg7tapowxMPQBFCl7v3Aaa-L_UsICGFhymSajSD8VL3oguhfwcegunVpgJRh_MgfRSv-YDJlLxgCKEkk6mATgKWeHQq6Npbe9OdbGY0UxUF5gL3fjvhI82Xx4Fnh7eRC-69c4-GV6P0NeP8Gvq-7BJiWWCPW-DwkCd9idu68BS0wbgMgLGMHPpxbH_Bk3oZTSO-sp7B0wFtlSCUGG3kLB4IkisxzWtxBgl9qUlAvis"/>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-2">
+<h4 class="font-headline text-xl text-primary-container">Order #CF-8241</h4>
+<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Hoàn thành</span>
+</div>
+<p class="text-secondary/70 text-sm mb-3">12 Oct 2023, 09:45 AM</p>
+<p class="font-body text-sm text-primary-container font-medium">Single-Origin Pour Over, Herbed Goat Cheese Croissant</p>
+</div>
+<div class="text-right flex flex-col items-end gap-4">
+<p class="font-headline text-2xl text-primary-container">215 birr</p>
+<button class="bg-primary-container text-white px-8 py-3 rounded-[24px] font-body text-sm font-bold hover:bg-primary transition-all active:scale-95">Đặt lại</button>
+</div>
+</div>
+<!-- Order Card 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm flex flex-col md:flex-row gap-8 items-center">
+<div class="flex">
+<div class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
+<img alt="Lavender Honey Latte" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRpqIgb37HjdwpxLnOPh4ge4YU05T98GqHt6JPhRCJjTgI2FgZeuCzGiiHAc1aov_LdQS0TbrS6evZkxZs8-Av3mSL8uidVZGuScsRlfU8Gg_J62KGqoGihjVN8d3CcKQOfgN9XGARoRcOiyiC-FaCryRpBO40GLzh81NoLgq5tu_16tkiGBv9Szi9AAX6t4BZG1j4Ll0KE9W7kYQgSTTyDY7W3MwRu9KmL-9KhR3wU5Div1gkJ0hq6ESB60b2GnT0cAy48zr0Oek"/>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-2">
+<h4 class="font-headline text-xl text-primary-container">Order #CF-7192</h4>
+<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Hoàn thành</span>
+</div>
+<p class="text-secondary/70 text-sm mb-3">08 Oct 2023, 03:20 PM</p>
+<p class="font-body text-sm text-primary-container font-medium">Lavender Honey Latte (Medium)</p>
+</div>
+<div class="text-right flex flex-col items-end gap-4">
+<p class="font-headline text-2xl text-primary-container">145 birr</p>
+<button class="bg-primary-container text-white px-8 py-3 rounded-[24px] font-body text-sm font-bold hover:bg-primary transition-all active:scale-95">Đặt lại</button>
+</div>
+</div>
+<!-- Order Card 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm flex flex-col md:flex-row gap-8 items-center">
+<div class="flex -space-x-4">
+<div class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
+<img alt="Ceremonial Grade Matcha" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBb72Rlw1mvcLItoBP4UErouofpmerfXAPJ0PFEv1_48cbG5dx2lSv9Dao5cMP-U1b6nCvGk7QSnvfQ0XG6UV9ecyiiWaqLhasyhY0IXd06menRANCgZKfn-8ZroRBb-FAOMSMfmVuisYhZeZzLSHTsbbhE9I7gDu2_cDpVR4jTJ7T6zOmRoWszXe5JIcPuJ-0tSponQWPvcnE9jKEcIThMatGpyuuQZjyg-YfeJf3TP7C6R9W8VOKaoEGTWXnzDwQvHbPGYsaix5Y"/>
+</div>
+<div class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
+<img alt="Macchiato" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4UFjVQFEVBk5YRQTiz6iiMH8N1z9yu17fOJv6f4xWtreqOCPXtDYOLDUcEN0NhLuA6xkVSDFU8AIBexDQNjOO_Pj92t6MrUi4ux1QydEPDvbYniY6XAlIK1C1B9cM-1bXfRFf1ExDU2HdR5I7RJFL_Cn_vBKyRNp-lIT0Jg3Ij3d2G8CnLGLU6gGvDQuJ896Hbw_plCKXujmqdzpQ8L_S1gy8Edh-nj-wNXW7iPZMXfWKIMIjdPhjPZHR4v4slPpGuUWA55hJc0U"/>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-2">
+<h4 class="font-headline text-xl text-primary-container">Order #CF-6504</h4>
+<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Hoàn thành</span>
+</div>
+<p class="text-secondary/70 text-sm mb-3">05 Oct 2023, 10:15 AM</p>
+<p class="font-body text-sm text-primary-container font-medium">Ceremonial Grade Matcha, Macchiato</p>
+</div>
+<div class="text-right flex flex-col items-end gap-4">
+<p class="font-headline text-2xl text-primary-container">240 birr</p>
+<button class="bg-primary-container text-white px-8 py-3 rounded-[24px] font-body text-sm font-bold hover:bg-primary transition-all active:scale-95">Đặt lại</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- View: Order Tracking (Dedicated) -->
+<div x-cloak x-show="currentView === 'tracking'">
+<h2 class="font-headline text-4xl text-primary-container mb-8">Theo dõi đơn hàng</h2>
+<div class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm">
+<div class="flex items-center gap-3 mb-2">
+<h4 class="font-headline text-xl text-primary-container">Order #CF-2025</h4>
+<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Đang xử lý</span>
+</div>
+<p class="text-secondary/70 text-sm mb-6">01 Apr 2026, 10:30 AM</p>
+<div class="flex items-center justify-between mb-8 px-4">
+<div class="flex flex-col items-center gap-2"><div class="w-10 h-10 rounded-full bg-primary-container text-white flex items-center justify-center"><span class="material-symbols-outlined text-lg">check</span></div><span class="text-xs font-bold text-primary-container text-center">Chờ xác nhận</span></div>
+<div class="flex-1 h-0.5 bg-primary-container mx-2"></div>
+<div class="flex flex-col items-center gap-2"><div class="w-10 h-10 rounded-full bg-surface-container-high text-secondary flex items-center justify-center"><span class="material-symbols-outlined text-lg">coffee_maker</span></div><span class="text-xs font-medium text-secondary text-center">Đang pha chế</span></div>
+<div class="flex-1 h-0.5 bg-surface-container-high mx-2"></div>
+<div class="flex flex-col items-center gap-2"><div class="w-10 h-10 rounded-full bg-surface-container-high text-secondary flex items-center justify-center"><span class="material-symbols-outlined text-lg">local_shipping</span></div><span class="text-xs font-medium text-secondary text-center">Ready/Đang giao</span></div>
+<div class="flex-1 h-0.5 bg-surface-container-high mx-2"></div>
+<div class="flex flex-col items-center gap-2"><div class="w-10 h-10 rounded-full bg-surface-container-high text-secondary flex items-center justify-center"><span class="material-symbols-outlined text-lg">done_all</span></div><span class="text-xs font-medium text-secondary text-center">Hoàn thành</span></div>
+</div>
+<div class="border-t border-outline-variant/20 pt-6 space-y-3">
+<h5 class="font-headline text-lg text-primary-container">Tóm tắt đơn hàng</h5>
+<div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-lg">location_on</span><span class="text-secondary">123 Nguyễn Huệ, Q.1, TP.HCM</span></div>
+<div class="flex items-center gap-4 mt-3"><div class="w-12 h-12 rounded-lg overflow-hidden"><img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzhlHpEsL7pqoNrk_cE3_aTaED8ZYsNRgZ2keQ1KHW1GOQwgFJDX3OcQyxnqn6KoAD-6XJ1lLIVKYSTFwndkH0vfIyhzuNkQ9rDKrYwHOpjV5QGBLWmvrVo1KKr0PJQvy86l4kjdMgXe2cvBZyEpkA_o1l-1UZmAB5HuUzvAw22HFrr_FiSHsqAgVrU8j7F6WcJCNePN6MZQPHmccQi6MVLrZ7C9Mwg5f53ccT6AoddAf-wHfPz9jhoIUgVEb0LBCiKl-lN0onvrQ" alt="Cappuccino"/></div><div><p class="font-body text-sm font-bold text-primary-container">Cappuccino x1</p><p class="text-secondary text-xs">95 birr</p></div></div>
+</div>
+<div class="mt-6 flex items-center justify-between">
+<p class="text-xs text-secondary/60 italic">Lưu ý: Bạn chỉ có thể hủy khi đơn ở trạng thái "Chờ xác nhận".</p>
+<button @click="showCancelDialog = true" class="border-2 border-error/30 text-error px-6 py-2.5 rounded-[24px] font-body text-sm font-bold hover:bg-error/5 transition-all active:scale-95">Hủy đơn</button>
+</div>
+</div>
+</div>
+<!-- View: Settings -->
+<div x-cloak x-show="currentView === 'settings'">
+<h2 class="font-headline text-4xl text-primary-container mb-8">Cài đặt</h2>
+<!-- Profile Section -->
+<div class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm mb-8">
+<h3 class="font-headline text-xl text-primary-container mb-6">Hồ sơ cá nhân</h3>
+<div class="space-y-5">
+<div><label class="text-xs font-bold text-secondary uppercase tracking-wider mb-2 block">Họ và tên</label><input type="text" value="Nguyễn Văn A" class="w-full bg-white px-5 py-3.5 rounded-[24px] shadow-sm font-body text-sm text-primary-container focus:ring-2 focus:ring-primary-container/20 border-none"/></div>
+<div><label class="text-xs font-bold text-secondary uppercase tracking-wider mb-2 block">Số điện thoại</label><input type="tel" value="0901 234 567" class="w-full bg-white px-5 py-3.5 rounded-[24px] shadow-sm font-body text-sm text-primary-container focus:ring-2 focus:ring-primary-container/20 border-none"/></div>
+<div><label class="text-xs font-bold text-secondary uppercase tracking-wider mb-2 block">Email</label><input type="email" value="nguyen.a@email.com" class="w-full bg-white px-5 py-3.5 rounded-[24px] shadow-sm font-body text-sm text-primary-container focus:ring-2 focus:ring-primary-container/20 border-none"/></div>
+</div>
+<button @click="showToast = true; setTimeout(() => showToast = false, 3000)" class="mt-6 bg-primary-container text-white px-8 py-3 rounded-[24px] font-body text-sm font-bold hover:bg-primary transition-all active:scale-95">Lưu thay đổi</button>
+</div>
+<!-- Address Book -->
+<div class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm">
+<h3 class="font-headline text-xl text-primary-container mb-6">Địa chỉ giao hàng</h3>
+<div class="space-y-4">
+<div class="bg-white p-5 rounded-[24px] shadow-sm">
+<div class="flex items-center gap-3 mb-2"><span class="material-symbols-outlined text-primary-container">home</span><h4 class="font-body font-bold text-primary-container">Nhà riêng</h4><span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Mặc định</span></div>
+<p class="text-secondary text-sm ml-9">123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM</p>
+<div class="flex gap-4 mt-3 ml-9"><button class="text-xs font-bold text-primary-container hover:underline">Sửa</button><button class="text-xs font-bold text-error/70 hover:underline">Xóa</button><button class="text-xs font-bold text-secondary hover:underline">Đặt Mặc định</button></div>
+</div>
+<div class="bg-white p-5 rounded-[24px] shadow-sm">
+<div class="flex items-center gap-3 mb-2"><span class="material-symbols-outlined text-primary-container">apartment</span><h4 class="font-body font-bold text-primary-container">Công ty</h4></div>
+<p class="text-secondary text-sm ml-9">456 Lê Lợi, Phường Bến Thành, Quận 1, TP.HCM</p>
+<div class="flex gap-4 mt-3 ml-9"><button class="text-xs font-bold text-primary-container hover:underline">Sửa</button><button class="text-xs font-bold text-error/70 hover:underline">Xóa</button><button class="text-xs font-bold text-secondary hover:underline">Đặt Mặc định</button></div>
+</div>
+</div>
+<button class="mt-4 border-2 border-dashed border-outline-variant/40 text-secondary w-full py-3 rounded-[24px] font-body text-sm font-bold hover:bg-white/50 transition-all">+ Thêm địa chỉ mới</button>
+</div>
+</div>
+<!-- View: Chat & Support -->
+<div x-cloak x-show="currentView === 'support'">
+<h2 class="font-headline text-4xl text-primary-container mb-8">Hỗ trợ khách hàng</h2>
+<div class="space-y-6 pb-12">
+<a href="tel:19001234" class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm flex items-center gap-6 hover:shadow-lg transition-shadow cursor-pointer block">
+<div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-emerald-700 text-3xl">call</span></div>
+<div><h3 class="font-headline text-xl text-primary-container">Gọi Hotline trực tiếp</h3><p class="text-secondary text-sm mt-1">1900 1234 — Miễn phí cuộc gọi</p></div>
+<span class="material-symbols-outlined text-secondary ml-auto">arrow_forward</span>
+</a>
+<a href="https://zalo.me/0901234567" target="_blank" class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm flex items-center gap-6 hover:shadow-lg transition-shadow cursor-pointer block">
+<div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-blue-700 text-3xl">chat</span></div>
+<div><h3 class="font-headline text-xl text-primary-container">Nhắn tin qua Zalo</h3><p class="text-secondary text-sm mt-1">Tư vấn chi tiết, gửi hình ảnh minh chứng</p></div>
+<span class="material-symbols-outlined text-secondary ml-auto">arrow_forward</span>
+</a>
+<a href="https://m.me/coffi" target="_blank" class="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm flex items-center gap-6 hover:shadow-lg transition-shadow cursor-pointer block">
+<div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-purple-700 text-3xl">forum</span></div>
+<div><h3 class="font-headline text-xl text-primary-container">Chat qua Messenger</h3><p class="text-secondary text-sm mt-1">Kết nối Facebook Messenger</p></div>
+<span class="material-symbols-outlined text-secondary ml-auto">arrow_forward</span>
+</a>
+</div>
+<p class="text-center text-secondary/50 text-sm mt-4">Hỗ trợ mỗi ngày từ 07:00 - 22:00</p>
+</div>
+<!-- View: Help Center -->
+<div x-cloak x-show="currentView === 'help'">
+<h2 class="font-headline text-4xl text-primary-container mb-4">Trung tâm Trợ giúp</h2>
+<div class="flex items-center bg-surface-container-highest px-6 py-4 rounded-xl gap-4 mb-10">
+<span class="material-symbols-outlined text-secondary">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body text-sm placeholder:text-secondary/60" placeholder="Tìm kiếm câu trả lời..." type="text"/>
+</div>
+<div class="space-y-4 pb-12">
+<!-- Pinned FAQ 1 -->
+<div class="bg-surface-container-lowest rounded-[24px] shadow-sm overflow-hidden">
+<button @click="expandedFaq === 0 ? expandedFaq = null : expandedFaq = 0" class="w-full p-6 flex items-center justify-between cursor-pointer hover:bg-white/50 transition-colors">
+<div class="flex items-center gap-3"><span class="text-sm">📌</span><h4 class="font-headline text-base text-primary-container text-left">Chính sách hoàn tiền khi hủy đơn hàng?</h4></div>
+<span class="material-symbols-outlined text-secondary transition-transform" :class="expandedFaq === 0 ? 'rotate-180' : ''">expand_more</span>
+</button>
+<div x-show="expandedFaq === 0" x-collapse class="px-6 pb-6"><p class="text-secondary text-sm leading-relaxed">Tiền sẽ được hoàn tự động về ví/tài khoản ngân hàng trong vòng 24h đối với đơn đã thanh toán online. Đối với đơn thanh toán tiền mặt tại quầy, vui lòng nhận lại tiền trực tiếp tại Quầy Thu Ngân.</p></div>
+</div>
+<!-- Pinned FAQ 2 -->
+<div class="bg-surface-container-lowest rounded-[24px] shadow-sm overflow-hidden">
+<button @click="expandedFaq === 1 ? expandedFaq = null : expandedFaq = 1" class="w-full p-6 flex items-center justify-between cursor-pointer hover:bg-white/50 transition-colors">
+<div class="flex items-center gap-3"><span class="text-sm">📌</span><h4 class="font-headline text-base text-primary-container text-left">Làm sao thay đổi địa chỉ giao hàng?</h4></div>
+<span class="material-symbols-outlined text-secondary transition-transform" :class="expandedFaq === 1 ? 'rotate-180' : ''">expand_more</span>
+</button>
+<div x-show="expandedFaq === 1" x-collapse class="px-6 pb-6"><p class="text-secondary text-sm leading-relaxed">Chỉ hỗ trợ thay đổi khi tài xế chưa nhận đơn. Bạn có thể vào phần "Đơn hàng của tôi" để hủy đơn hiện tại rồi đặt lại với địa chỉ mới. Hoặc cập nhật địa chỉ mặc định trong phần Cài đặt.</p></div>
+</div>
+<!-- FAQ 3 -->
+<div class="bg-surface-container-lowest rounded-[24px] shadow-sm overflow-hidden">
+<button @click="expandedFaq === 2 ? expandedFaq = null : expandedFaq = 2" class="w-full p-6 flex items-center justify-between cursor-pointer hover:bg-white/50 transition-colors">
+<h4 class="font-headline text-base text-primary-container text-left">Sổ địa chỉ lưu được bao nhiêu điểm đến?</h4>
+<span class="material-symbols-outlined text-secondary transition-transform" :class="expandedFaq === 2 ? 'rotate-180' : ''">expand_more</span>
+</button>
+<div x-show="expandedFaq === 2" x-collapse class="px-6 pb-6"><p class="text-secondary text-sm leading-relaxed">Bạn có thể lưu tối đa 5 địa chỉ khác nhau trong Sổ địa chỉ. Nhớ đặt 1 địa chỉ làm "Mặc định" để tự động điền khi Checkout.</p></div>
+</div>
+<!-- FAQ 4 -->
+<div class="bg-surface-container-lowest rounded-[24px] shadow-sm overflow-hidden">
+<button @click="expandedFaq === 3 ? expandedFaq = null : expandedFaq = 3" class="w-full p-6 flex items-center justify-between cursor-pointer hover:bg-white/50 transition-colors">
+<h4 class="font-headline text-base text-primary-container text-left">Cách liên hệ tổng đài hỗ trợ?</h4>
+<span class="material-symbols-outlined text-secondary transition-transform" :class="expandedFaq === 3 ? 'rotate-180' : ''">expand_more</span>
+</button>
+<div x-show="expandedFaq === 3" x-collapse class="px-6 pb-6"><p class="text-secondary text-sm leading-relaxed">Bạn có thể gọi Hotline 1900 1234 (miễn phí), nhắn tin qua Zalo hoặc Messenger. Thời gian hỗ trợ: 07:00 - 22:00 mỗi ngày.</p></div>
+</div>
+</div>
+</div>
+</main>
+<!-- Cart/Checkout (Right Column) -->
+<aside class="w-[380px] h-screen sticky right-0 top-0 bg-surface-container flex flex-col z-50">
+<!-- Profile Section -->
+<div class="p-8 flex items-center gap-4 border-b border-outline-variant/10">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-container/20">
+<img class="w-full h-full object-cover" data-alt="professional male portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApvYIqRybUbEXsReSl2s_S2bdOCOWSG059NKC91mxezqtfk-hyuqRj93bXI8s7LuKUC2h4oFBu3QH-KYQbEk2Orzfc6PVtRX1iUFkIgCF_isbiTygq323gIXym_qck3e2RXy-C-S15Alq1h1fIA8_4Q6zh-zt29DNrbzGwgyic76u5VbSe2PkYeUSo9JM3thRCUBRVyJPyY6-QmAaZhg0BbWvBrpHmPY7DOOg6sAyozsIbJWCqn4LLmDKat3HmA_plZ8wGtY8OeLw"/>
+</div>
+<div>
+<h4 class="font-body font-bold text-primary-container leading-tight">Matiko Coffee Land</h4>
+<p class="text-xs text-secondary/70">hello@matikocoffee.com</p>
+</div>
+<button class="ml-auto text-primary-container">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+<div class="flex-1 flex flex-col px-8 py-6 space-y-6 overflow-y-auto">
+<h2 class="font-headline text-2xl text-primary-container">Cart</h2>
+<!-- Fulfillment Types -->
+<div class="grid grid-cols-3 gap-2 bg-surface-container-high p-1 rounded-full">
+<button class="py-2 text-xs font-bold font-body rounded-full text-secondary hover:bg-white/50 transition-all">Delivery</button>
+<button class="py-2 text-xs font-bold font-body rounded-full bg-primary-container text-white shadow-md">Dine in</button>
+<button class="py-2 text-xs font-bold font-body rounded-full text-secondary hover:bg-white/50 transition-all">Take away</button>
+</div>
+<!-- Cart Items -->
+<div class="space-y-4">
+<!-- Cart Item 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex gap-4 relative group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="macchiato" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACFx9r70Y_AnwOsUcRURe8vrIxky4BcUgmMNu10F8i3m59FMPrKwwvT9tKmNjiy7gFOqIgxq7OiFB-aICWiKLjhRJ-3Vfn9pI36Hr-_QERmCsoxOAqv58lx17iD_2PNZxd1l9G05CaQsAuqS1DXsTU9aSD17o9t1RwKctzdgBQkmrvi_ykqKuLwDRO4NKXCwCfyi6kI6gbPGeKwPTo3uifhWXw8p7q7MIJ4K3FdKABWiIFonROPyLE84q4U-E6JlKeHLdA8IJKUBs"/>
+</div>
+<div class="flex-1">
+<h5 class="font-body font-bold text-sm text-primary-container">Small Macchiato</h5>
+<p class="text-secondary font-bold text-xs mt-1">80 birr</p>
+<div class="flex items-center gap-3 mt-2">
+<button class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary-container"><span class="material-symbols-outlined text-[14px]" data-icon="remove">remove</span></button>
+<span class="text-xs font-bold">1</span>
+<button class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary-container"><span class="material-symbols-outlined text-[14px]" data-icon="add">add</span></button>
+</div>
+</div>
+<button class="absolute top-2 right-2 text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span>
+</button>
+</div>
+<!-- Cart Item 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex gap-4 relative group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="iced chocolate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1R3EqeFFCROsZ9eFLmcCM0xewYnj157oH5W9-4Ch73nHkNWakd3Od81vxlS-r7YP0zc7XI8OivO4J9AQspu4rfXV9aAAsiw7KNRKfbG_EjXUzv9OOcgRdLju9pbQvc0E7RokJa9z-AZljnxTZFyGKoSK6HL4suO5Z2YdeZpltAHQEW_dspdt15NSzTuMrhKWNAl-thPOebLWAA-G8p44Zfdf0eITq8Jp6j1DpMYJQf9T171e32P9E_m-ahStJJ6Xi4QpTJqWuyDY"/>
+</div>
+<div class="flex-1">
+<h5 class="font-body font-bold text-sm text-primary-container">Large Iced Chocolate</h5>
+<p class="text-secondary font-bold text-xs mt-1">150 birr</p>
+<div class="flex items-center gap-3 mt-2">
+<button class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary-container"><span class="material-symbols-outlined text-[14px]" data-icon="remove">remove</span></button>
+<span class="text-xs font-bold">1</span>
+<button class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary-container"><span class="material-symbols-outlined text-[14px]" data-icon="add">add</span></button>
+</div>
+</div>
+<button class="absolute top-2 right-2 text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span>
+</button>
+</div>
+</div>
+<!-- Coupon -->
+<div class="bg-surface-container-highest p-1 rounded-xl flex items-center">
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold text-primary-container px-4" type="text" value="30HOLO"/>
+<button class="bg-primary-container text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Applied</button>
+</div>
+<!-- Summary -->
+<div class="space-y-3 pt-4 border-t border-outline-variant/20">
+<div class="flex justify-between text-sm font-body">
+<span class="text-secondary">Subtotal</span>
+<span class="font-bold text-primary-container">230.00 birr</span>
+</div>
+<div class="flex justify-between text-sm font-body">
+<span class="text-secondary">Shipping</span>
+<span class="font-bold text-primary-container">0.00 birr</span>
+</div>
+<div class="flex justify-between text-sm font-body">
+<span class="text-secondary">Taxes 15%</span>
+<span class="font-bold text-primary-container">34.50 birr</span>
+</div>
+<div class="flex justify-between text-lg font-headline pt-3 border-t border-outline-variant/10">
+<span class="text-primary-container font-bold">Total</span>
+<span class="font-bold text-primary-container">264.50 birr</span>
+</div>
+</div>
+</div>
+<!-- Checkout Button -->
+<div class="p-8 mt-auto">
+<button class="w-full bg-primary-container text-white py-5 rounded-xl font-body font-bold text-lg hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3">
+            Checkout
+            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</aside>
+<button class="fixed bottom-8 right-[412px] w-14 h-14 bg-[#2A1B16] text-[#FDF9F3] rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95 z-[60] focus:outline-none" id="scroll-to-bottom-button">
+<span class="material-symbols-outlined text-3xl font-light" data-icon="expand_more">expand_more</span>
+</button>
+<button class="fixed z-[70] w-14 h-14 text-white rounded-full flex items-center justify-center shadow-[0_10px_25px_-5px_rgba(42,27,22,0.4)] transition-all duration-300 hover:scale-110 active:scale-95 animate-breathe focus:outline-none bottom-40 right-8" id="chatbot-fab" style="background-color: #C89F70;">
+<svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5"></path>
+<path d="M19 3l.5 2.5L22 6l-2.5.5L19 9l-.5-2.5L16 6l2.5-.5L19 3z" fill="white" stroke="none"></path>
+</svg>
+</button></body></html>
