@@ -7,6 +7,8 @@ export interface LeadData {
   address?: string;
   sessionId?: string;
   chatHistory?: string;
+  intent_level?: string;
+  favorite_item?: string;
 }
 
 export interface OrderData {

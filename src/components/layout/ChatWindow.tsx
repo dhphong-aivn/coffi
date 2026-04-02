@@ -43,7 +43,9 @@ export function ChatWindow() {
           name: leadData.name,
           address: leadData.address,
           sessionId: localStorage.getItem("chat_session_id") || "sess-xyz",
-          chatHistory: "Thông tin liên hệ từ Chatbot"
+          chatHistory: "Thông tin liên hệ từ Chatbot",
+          intent_level: leadData.intent_level,
+          favorite_item: leadData.favorite_item
         });
       }
 
