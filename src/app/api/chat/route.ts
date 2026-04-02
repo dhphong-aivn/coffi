@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     ];
 
     // Cấu hình Model Name
-    const modelName = process.env.LLM_MODEL || process.env.MODEL_LLM || process.env.model_llm || "google/gemini-2.5-flash";
+    const modelName = process.env.LLM_MODEL_NAME || process.env.LLM_MODEL || process.env.MODEL_LLM || process.env.model_llm || "google/gemini-2.5-flash";
 
     // Khởi tạo streaming với OpenAI
     const response = await openai.chat.completions.create({
