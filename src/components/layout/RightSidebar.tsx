@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useUserStore } from "@/store/useUserStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { TOPPINGS } from "@/data/menu-options";
+import { orderService } from "@/services/orderService";
 import { Bell, Minus, Plus, X, ArrowRight, ArrowLeft, ShoppingCart, User, Phone, MapPin } from "lucide-react";
 
 export function RightSidebar() {
@@ -42,33 +44,66 @@ export function RightSidebar() {
     setCheckoutStep('info');
   };
 
-  const handleConfirmOrder = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleConfirmOrder = async () => {
     if (!customerInfo.name || !customerInfo.phone) return;
 
-    const newOrder = {
-      id: Date.now().toString(),
-      orderNumber: `CF-${Math.floor(1000 + Math.random() * 9000)}`,
-      items: items.map((item) => ({
-        name: item.name,
-        price: getEffectivePrice(item),
-        quantity: item.quantity,
-        image: item.image,
-      })),
-      total,
-      status: 'processing' as const,
-      fulfillment: fulfillmentType,
-      customerName: customerInfo.name,
-      customerPhone: customerInfo.phone,
-      address: customerInfo.address,
-      note: customerInfo.note,
-      createdAt: new Date().toISOString(),
-    };
+    setIsSubmitting(true);
+    try {
+      // 1. Lưu khách hàng
+      await orderService.saveLead({
+        phone: customerInfo.phone,
+        name: customerInfo.name,
+        address: customerInfo.address || "",
+        sessionId: localStorage.getItem("chat_session_id") || "sess-xyz",
+        chatHistory: "Manual Checkout"
+      });
 
-    addOrder(newOrder);
-    clearCart();
-    resetCheckout();
-    setOrderTab('active');
-    setCurrentView('orders');
+      // 2. Chốt đơn lên Sheets
+      const res = await orderService.submitOrder({
+        phone: customerInfo.phone,
+        name: customerInfo.name,
+        totalAmount: total,
+        fulfillment: fulfillmentType,
+        status: 'Pending',
+        note: customerInfo.note || "",
+        source: "Manual",
+        items: items
+      });
+
+      // 3. Đưa vào State local để hiển thị màn hình order history
+      const newOrder = {
+        id: res.orderId || Date.now().toString(),
+        orderNumber: res.orderId || `CF-${Math.floor(1000 + Math.random() * 9000)}`,
+        items: items.map((item) => ({
+          name: item.name,
+          price: getEffectivePrice(item),
+          quantity: item.quantity,
+          image: item.image,
+        })),
+        total,
+        status: 'processing' as const,
+        fulfillment: fulfillmentType,
+        customerName: customerInfo.name,
+        customerPhone: customerInfo.phone,
+        address: customerInfo.address,
+        note: customerInfo.note,
+        createdAt: new Date().toISOString(),
+      };
+
+      addOrder(newOrder);
+      clearCart();
+      resetCheckout();
+      setOrderTab('active');
+      setCurrentView('orders');
+      alert(`Đặt hàng thành công! Mã đơn: ${newOrder.orderNumber}`);
+    } catch (e) {
+      console.error(e);
+      alert("Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = customerInfo.name.trim() !== '' && customerInfo.phone.trim() !== '';
@@ -399,15 +434,15 @@ export function RightSidebar() {
               </div>
               <button
                 onClick={handleConfirmOrder}
-                disabled={!isFormValid}
+                disabled={!isFormValid || isSubmitting}
                 className={`w-full py-4 rounded-xl font-body font-bold text-base transition-all shadow-lg flex items-center justify-center gap-2 ${
-                  !isFormValid
+                  (!isFormValid || isSubmitting)
                     ? 'bg-outline-variant text-secondary cursor-not-allowed'
                     : 'bg-primary-container text-white hover:bg-primary active:scale-[0.98] cursor-pointer'
                 }`}
               >
-                Tiếp tục
-                <ArrowRight size={20} />
+                {isSubmitting ? "Đang đặt hàng..." : "Tiếp tục"}
+                {!isSubmitting && <ArrowRight size={20} />}
               </button>
             </div>
           </div>

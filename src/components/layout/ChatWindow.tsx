@@ -3,6 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Send, Bot, User, RefreshCw } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
+import { useCartStore } from "@/store/useCartStore";
+import { useOrderStore } from "@/store/useOrderStore";
+import { orderService } from "@/services/orderService";
+import { getFullCartItem } from "@/data/menuLookup";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -22,6 +26,93 @@ const WELCOME_MESSAGE: ChatMessage = {
 
 export function ChatWindow() {
   const { isChatOpen, setChatOpen, isCartCollapsed } = useAppStore();
+  const cartItems = useCartStore((state) => state.items);
+  const addItemToCart = useCartStore((state) => state.addItem);
+  const getSubTotal = useCartStore((state) => state.getSubTotal);
+  const orders = useOrderStore((state) => state.orders);
+
+  // Parse nội dung AI để gọi Backend Google Sheets
+  const processAIResponseConfig = async (fullText: string) => {
+    try {
+      // 1. Kiểm tra Lead Data
+      const leadMatch = fullText.match(/\|\|LEAD_DATA:\s*(\{.*?\})\s*\|\|/);
+      if (leadMatch) {
+        const leadData = JSON.parse(leadMatch[1]);
+        await orderService.saveLead({
+          phone: leadData.phone,
+          name: leadData.name,
+          address: leadData.address,
+          sessionId: localStorage.getItem("chat_session_id") || "sess-xyz",
+          chatHistory: "Thông tin liên hệ từ Chatbot"
+        });
+      }
+
+      // 2. Thêm vào giỏ
+      const cartMatch = fullText.match(/\|\|ADD_TO_CART:\s*(\{.*?\})\s*\|\|/);
+      if (cartMatch) {
+        const cartData = JSON.parse(cartMatch[1]);
+        const fullItem = getFullCartItem(cartData.menuId, cartData.size, cartData.qty);
+        addItemToCart(fullItem);
+        alert(`Đã thêm ${fullItem.name} vào giỏ!`);
+      }
+
+      // 3. Chốt đơn (Checkout)
+      const checkoutMatch = fullText.includes("||CHECKOUT_DATA||");
+      if (checkoutMatch) {
+        if (cartItems.length === 0) {
+           alert("Giỏ hàng đang trống, không thể chốt đơn!");
+           return;
+        }
+
+        const activeOrder = orders.length > 0 ? orders[0] : null;
+
+        // Lấy lead data từ active store hoặc tag
+        const currentPhone = leadMatch ? JSON.parse(leadMatch[1]).phone : (activeOrder?.customerPhone || "");
+        if(!currentPhone) {
+           alert("Thiếu số điện thoại để chốt đơn! Vui lòng cho biết Số điện thoại của bạn.");
+           return;
+        }
+
+        const res = await orderService.submitOrder({
+          phone: currentPhone,
+          name: leadMatch ? JSON.parse(leadMatch[1]).name : (activeOrder?.customerName || "Khách"),
+          totalAmount: getSubTotal(),
+          fulfillment: "Pickup",
+          status: "Pending",
+          note: "Chốt từ Chatbot",
+          source: "Chatbot",
+          items: cartItems
+        });
+
+        // Đưa vào State local để hiển thị màn hình order history
+        const newOrder = {
+          id: res.orderId || Date.now().toString(),
+          orderNumber: res.orderId || `CF-${Math.floor(1000 + Math.random() * 9000)}`,
+          items: cartItems.map((item) => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          total: getSubTotal(),
+          status: 'processing' as const,
+          fulfillment: 'take-away' as const,
+          customerName: leadMatch ? JSON.parse(leadMatch[1]).name : (activeOrder?.customerName || "Khách"),
+          customerPhone: currentPhone,
+          note: "Chốt từ Chatbot",
+          createdAt: new Date().toISOString(),
+        };
+
+        useOrderStore.getState().addOrder(newOrder);
+        useCartStore.getState().clearCart();
+        
+        alert(`Chốt đơn thành công! Mã đơn: ${res.orderId}`);
+      }
+    } catch (e) {
+      console.error("Lỗi khi parse tag AI:", e);
+    }
+  };
+
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -75,7 +166,6 @@ export function ChatWindow() {
     ]);
 
     try {
-      // Gộp state hiện tại và tin nhắn vừa thêm làm history gửi lên server
       const conversation = [...messages, userMessage];
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -100,22 +190,29 @@ export function ChatWindow() {
           const chunk = decoder.decode(value, { stream: true });
           botResponseText += chunk;
           
+          // Giấu tag || đi, chỉ hiển thị phần trước đó cho User
+          const displayText = botResponseText.split("||")[0];
+
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === botMessageId
-                ? { ...msg, text: botResponseText }
+                ? { ...msg, text: displayText }
                 : msg
             )
           );
         }
       }
+
+      // SAU KHI STREAM XONG -> PARSE TAGS
+      await processAIResponseConfig(botResponseText);
+
     } catch (error) {
       console.error(error);
       setIsTyping(false);
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === botMessageId
-            ? { ...msg, text: "**Lỗi hệ thống.** 9Router hiện không phản hồi, vui lòng thử lại sau." }
+            ? { ...msg, text: "**Lỗi hệ thống.** Kết nối AI hiện không phản hồi, vui lòng thử lại sau." }
             : msg
         )
       );
