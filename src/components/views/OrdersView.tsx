@@ -1,7 +1,8 @@
 "use client";
 
 import { useAppStore } from "@/store/useAppStore";
-import { MapPin, Package, ArrowRight } from "lucide-react";
+import { useOrderStore, Order } from "@/store/useOrderStore";
+import { MapPin, Package, ArrowRight, ShoppingBag } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,122 +12,171 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+const formatCurrency = (amount: number) =>
+  amount.toLocaleString("vi-VN") + " VND";
+
+const formatDate = (iso: string) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
+  processing: { label: "Processing", bg: "bg-amber-100", text: "text-amber-700" },
+  preparing: { label: "Preparing", bg: "bg-blue-100", text: "text-blue-700" },
+  "on-the-way": { label: "On the way", bg: "bg-indigo-100", text: "text-indigo-700" },
+  delivered: { label: "Completed", bg: "bg-emerald-100", text: "text-emerald-700" },
+  cancelled: { label: "Cancelled", bg: "bg-red-100", text: "text-red-600" },
+};
+
+function OrderCard({ order, isActive }: { order: Order; isActive: boolean }) {
+  const { setShowCancelDialog, setCurrentView } = useAppStore();
+  const status = statusConfig[order.status] || statusConfig.processing;
+
+  return (
+    <div className="bg-surface-container-lowest p-6 rounded-[20px] shadow-sm hover:shadow-lg transition-shadow">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-1">
+        <h4 className="font-headline text-lg text-primary-container">
+          Order #{order.orderNumber}
+        </h4>
+        <span className={`${status.bg} ${status.text} text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest`}>
+          {status.label}
+        </span>
+      </div>
+      <p className="text-secondary/60 text-xs mb-4 font-body">{formatDate(order.createdAt)}</p>
+
+      {/* Items */}
+      <div className="border-t border-outline-variant/10 pt-4 space-y-3">
+        {order.address && (
+          <div className="flex items-center gap-2 text-xs text-secondary/70 font-body">
+            <MapPin size={14} className="flex-shrink-0" />
+            <span className="truncate">{order.address}</span>
+          </div>
+        )}
+        {order.items.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+              <img className="w-full h-full object-cover" src={item.image} alt={item.name} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-body text-sm font-bold text-primary-container truncate">{item.name} x{item.quantity}</p>
+              <p className="text-secondary text-[11px] tracking-tight">{formatCurrency(item.price * item.quantity)}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-4 pt-4 border-t border-outline-variant/10 flex items-center justify-between">
+        <p className="font-headline text-xl text-primary-container tracking-tight">{formatCurrency(order.total)}</p>
+        {isActive ? (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCancelDialog(true)}
+              className="border border-error/30 text-error px-4 py-2 rounded-full font-body text-xs font-bold hover:bg-error/5 transition-all active:scale-95 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => setCurrentView("tracking")}
+              className="bg-primary-container text-white px-4 py-2 rounded-full font-body text-xs font-bold hover:bg-primary transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+            >
+              <Package size={14} />
+              Track
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        ) : (
+          <button className="bg-primary-container text-white px-6 py-2.5 rounded-full font-body text-xs font-bold hover:bg-primary transition-all active:scale-95 cursor-pointer">
+            Reorder
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-4">
+        <ShoppingBag size={28} className="text-primary-container/40" />
+      </div>
+      <p className="text-secondary/60 font-body text-sm">{message}</p>
+    </div>
+  );
+}
+
 export function OrdersView() {
-  const { orderTab, setOrderTab, showCancelDialog, setShowCancelDialog, setCurrentView } = useAppStore();
+  const { orderTab, setOrderTab, showCancelDialog, setShowCancelDialog } = useAppStore();
+  const { getActiveOrders, getHistoryOrders, cancelOrder, orders } = useOrderStore();
+
+  const activeOrders = getActiveOrders();
+  const historyOrders = getHistoryOrders();
+
+  const handleCancelLatest = () => {
+    const latest = activeOrders[0];
+    if (latest) {
+      cancelOrder(latest.id);
+    }
+    setShowCancelDialog(false);
+  };
 
   return (
     <div className="animate-in fade-in zoom-in-95 duration-300">
       <h2 className="font-headline text-4xl text-primary-container mb-8">My Orders</h2>
-      
+
       {/* Order Tabs */}
       <div className="flex gap-2 mb-10 bg-surface-container-high p-1 rounded-full w-fit">
         <button
-          onClick={() => setOrderTab('active')}
+          onClick={() => setOrderTab("active")}
           className={`px-8 py-2.5 rounded-full font-body text-sm font-bold transition-all cursor-pointer ${
-            orderTab === 'active'
-              ? 'bg-primary-container text-white shadow-md'
-              : 'bg-surface-container-high text-secondary hover:bg-white/50'
+            orderTab === "active"
+              ? "bg-primary-container text-white shadow-md"
+              : "bg-surface-container-high text-secondary hover:bg-white/50"
           }`}
         >
-          Active
+          Active{activeOrders.length > 0 && ` (${activeOrders.length})`}
         </button>
         <button
-          onClick={() => setOrderTab('history')}
+          onClick={() => setOrderTab("history")}
           className={`px-8 py-2.5 rounded-full font-body text-sm font-bold transition-all cursor-pointer ${
-            orderTab === 'history'
-              ? 'bg-primary-container text-white shadow-md'
-              : 'bg-surface-container-high text-secondary hover:bg-white/50'
+            orderTab === "history"
+              ? "bg-primary-container text-white shadow-md"
+              : "bg-surface-container-high text-secondary hover:bg-white/50"
           }`}
         >
-          History
+          History{historyOrders.length > 0 && ` (${historyOrders.length})`}
         </button>
       </div>
 
-      {orderTab === 'active' && (
-        <div className="space-y-6 pb-12">
-          <div className="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <h4 className="font-headline text-xl text-primary-container">Order #CF-2025</h4>
-              <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Processing</span>
-            </div>
-            <p className="text-secondary/70 text-sm mb-6">01 Apr 2026, 10:30 AM</p>
-            
-            {/* Order Items */}
-            <div className="border-t border-outline-variant/20 pt-6 space-y-4">
-              <h5 className="font-headline text-lg text-primary-container">Order Summary</h5>
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="text-secondary" size={18} />
-                <span className="text-secondary">123 Nguyen Hue, D.1, HCMC</span>
-              </div>
-              
-              <div className="flex items-center gap-4 mt-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden">
-                  <img className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1534778101976-62847782c213?q=80&w=200&auto=format&fit=crop" alt="Cappuccino"/>
-                </div>
-                <div>
-                  <p className="font-body text-sm font-bold text-primary-container">Cappuccino x1</p>
-                  <p className="text-secondary text-xs tracking-tight">95.000 VND</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 mt-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden">
-                  <img className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1549903072-7e6e0bedb7bc?q=80&w=200&auto=format&fit=crop" alt="Croissant"/>
-                </div>
-                <div>
-                  <p className="font-body text-sm font-bold text-primary-container">Butter Croissant x1</p>
-                  <p className="text-secondary text-xs tracking-tight">55.000 VND</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-6 flex items-center justify-between">
-              <button 
-                onClick={() => setShowCancelDialog(true)} 
-                className="border-2 border-error/30 text-error px-6 py-2.5 rounded-[24px] font-body text-sm font-bold hover:bg-error/5 transition-all active:scale-95 cursor-pointer"
-              >
-                Cancel Order
-              </button>
-              <button 
-                onClick={() => setCurrentView('tracking')}
-                className="bg-primary-container text-white px-6 py-2.5 rounded-[24px] font-body text-sm font-bold hover:bg-primary transition-all active:scale-95 cursor-pointer flex items-center gap-2"
-              >
-                <Package size={18} />
-                Track Order
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
+      {orderTab === "active" && (
+        <div className="space-y-4 pb-12">
+          {activeOrders.length > 0 ? (
+            activeOrders.map((order) => (
+              <OrderCard key={order.id} order={order} isActive />
+            ))
+          ) : (
+            <EmptyState message="Chưa có đơn hàng đang xử lý" />
+          )}
         </div>
       )}
 
-      {orderTab === 'history' && (
-        <div className="space-y-6 pb-12">
-          <div className="bg-surface-container-lowest p-8 rounded-[24px] shadow-sm flex flex-col md:flex-row gap-8 items-center group hover:shadow-xl transition-shadow">
-            <div className="flex -space-x-4">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
-                <img alt="Coffee" className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=200&auto=format&fit=crop"/>
-              </div>
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm">
-                <img alt="Croissant" className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1549903072-7e6e0bedb7bc?q=80&w=200&auto=format&fit=crop"/>
-              </div>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h4 className="font-headline text-xl text-primary-container">Order #CF-8241</h4>
-                <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Completed</span>
-              </div>
-              <p className="text-secondary/70 text-sm mb-3">12 Oct 2026, 09:45 AM</p>
-              <p className="font-body text-sm text-primary-container font-medium">Single-Origin Pour Over, Butter Croissant</p>
-            </div>
-            <div className="text-right flex flex-col items-end gap-4">
-              <p className="font-headline text-2xl text-primary-container tracking-tight">175.000 VND</p>
-              <button className="bg-primary-container text-white px-8 py-3 rounded-[24px] font-body text-sm font-bold hover:bg-primary transition-all active:scale-95 cursor-pointer">
-                Reorder
-              </button>
-            </div>
-          </div>
+      {orderTab === "history" && (
+        <div className="space-y-4 pb-12">
+          {historyOrders.length > 0 ? (
+            historyOrders.map((order) => (
+              <OrderCard key={order.id} order={order} isActive={false} />
+            ))
+          ) : (
+            <EmptyState message="Chưa có lịch sử đơn hàng" />
+          )}
         </div>
       )}
 
@@ -147,10 +197,7 @@ export function OrdersView() {
               No, keep it
             </button>
             <button
-              onClick={() => {
-                setShowCancelDialog(false);
-                setOrderTab('history');
-              }}
+              onClick={handleCancelLatest}
               className="px-4 py-2 bg-error text-white rounded-full font-bold text-sm hover:bg-error/90 cursor-pointer transition-colors"
             >
               Yes, cancel

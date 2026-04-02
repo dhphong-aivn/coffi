@@ -1,0 +1,450 @@
+================================================================================
+  COF FI — INTERNAL CHATBOT KNOWLEDGE BASE
+  Version: 1.0
+  Last Updated: 2026-04-02
+  Purpose: Training data for Cof fi Assistant (AI Chatbot)
+================================================================================
+
+
+================================================================================
+[SECTION 1] BRAND & STORE INFORMATION
+================================================================================
+
+Brand Name: Cof fi
+Tagline: "Modern Alchemist"
+Concept: Premium minimalist coffee ordering dashboard — modern, artistic, and intuitive.
+Store Name: Matiko Coffee Land
+Contact Email: hello@matikocoffee.com
+
+Operating Hours: 07:00 AM — 10:00 PM (Every day, including weekends & holidays)
+Hotline: 1900 1234 (Toll-free)
+Zalo Support: 0901234567
+Messenger: m.me/coffi
+Support Hours: 07:00 — 22:00 daily
+
+Store Locations:
+  - Block 4, Bole, Addis Ababa (Flagship)
+  - 5th Floor, Kazanchis, Addis Ababa (Office Hub)
+
+Currency: VND (Vietnamese Dong)
+Price Format: xxx.xxx VND (e.g., 80.000 VND)
+
+
+================================================================================
+[SECTION 2] FULL MENU & PRICING
+================================================================================
+
+--- COFFEE ---
+
+1. Macchiato
+   - Category: Coffee
+   - Base Price (Medium): 80.000 VND
+   - Small: 75.000 VND | Large: 83.000 VND
+   - Available Sizes: Small, Medium, Large
+   - Description: Classic espresso-based drink with a touch of steamed milk foam. Rich and bold.
+
+2. Cappuccino
+   - Category: Coffee
+   - Base Price (Medium): 95.000 VND
+   - Small: 90.000 VND | Large: 98.000 VND
+   - Available Sizes: Small, Medium, Large
+   - Description: Traditional Italian espresso with equal parts steamed milk and foam. Creamy and balanced.
+
+3. Espresso
+   - Category: Coffee
+   - Price: 60.000 VND
+   - Available Sizes: One size only
+   - Description: Pure, concentrated coffee shot. Bold and intense. The foundation of all coffee drinks.
+
+4. Single-Origin Pour Over
+   - Category: Coffee
+   - Price: 120.000 VND
+   - Available Sizes: One size only
+   - Description: Hand-brewed single-origin coffee. Light, clean, and highlights the unique terroir of the beans.
+
+5. Vietnamese Iced Coffee (Cà Phê Sữa Đá)
+   - Category: Coffee
+   - Base Price (Medium): 65.000 VND
+   - Small: 60.000 VND | Large: 68.000 VND
+   - Available Sizes: Small, Medium, Large
+   - Description: Traditional Vietnamese drip coffee with condensed milk, served over ice. Sweet and strong.
+
+
+--- NON COFFEE ---
+
+6. Iced Chocolate
+   - Category: Non Coffee
+   - Base Price (Medium): 150.000 VND
+   - Small: 145.000 VND | Large: 153.000 VND
+   - Available Sizes: Small, Medium, Large
+   - Description: Rich premium chocolate blended with ice. Indulgent and refreshing.
+
+7. Matcha Latte
+   - Category: Non Coffee
+   - Base Price (Medium): 90.000 VND
+   - Small: 85.000 VND | Large: 93.000 VND
+   - Available Sizes: Small, Medium, Large
+   - Description: Ceremonial-grade Japanese matcha whisked with steamed milk. Earthy and smooth.
+
+8. Peach Tea
+   - Category: Non Coffee
+   - Base Price (Medium): 75.000 VND
+   - Small: 70.000 VND | Large: 78.000 VND
+   - Available Sizes: Small, Medium, Large
+   - Description: Fresh peach-infused tea with a hint of sweetness. Light and fruity.
+
+
+--- DESSERT ---
+
+9. Butter Croissant
+   - Category: Dessert
+   - Price: 55.000 VND
+   - Available Sizes: One size only
+   - Description: Flaky, buttery French croissant baked fresh daily. Golden and crispy.
+
+10. Cheesecake
+    - Category: Dessert
+    - Price: 85.000 VND
+    - Available Sizes: One size only
+    - Description: Creamy New York-style cheesecake with a graham cracker crust. Rich and velvety.
+
+
+--- SNACK ---
+
+11. Mixed Nuts
+    - Category: Snack
+    - Price: 45.000 VND
+    - Available Sizes: One size only
+    - Description: Premium assorted roasted nuts — almonds, cashews, macadamia. Perfect coffee companion.
+
+12. Potato Wedges
+    - Category: Snack
+    - Price: 70.000 VND
+    - Available Sizes: One size only
+    - Description: Crispy seasoned potato wedges served with house dipping sauce. Golden and savory.
+
+
+================================================================================
+[SECTION 3] SIZE & PRICING RULES
+================================================================================
+
+Dynamic Pricing Engine:
+  - Medium = Base Price (default)
+  - Small  = Base Price − 5.000 VND
+  - Large  = Base Price + 3.000 VND
+
+Products with size options: Macchiato, Cappuccino, Vietnamese Iced Coffee, Iced Chocolate, Matcha Latte, Peach Tea
+Products without sizes (fixed price): Espresso, Single-Origin Pour Over, Butter Croissant, Cheesecake, Mixed Nuts, Potato Wedges
+
+Note: Customers can select quantity before adding to cart. Minimum quantity is 1.
+
+
+================================================================================
+[SECTION 4] ORDERING & CHECKOUT FLOW
+================================================================================
+
+Step-by-Step Ordering Process:
+
+1. BROWSE MENU
+   - Browse by category: All, Coffee, Non Coffee, Snack, Dessert
+   - Use search bar to find specific items
+   - Select size (if available) and quantity
+   - Click "Add to cart"
+
+2. REVIEW CART (Checkout Step 1)
+   - View all added items in the right sidebar cart
+   - Adjust quantities (+/−) or remove items
+   - Select fulfillment type: Dine-in, Delivery, or Take-away
+   - See subtotal, shipping fee, and tax breakdown
+   - Click "Continue to Checkout"
+
+3. CUSTOMER INFO (Checkout Step 2)
+   - Fill in required fields:
+     * Full Name (required)
+     * Phone Number (required)
+     * Age (optional)
+     * Email (optional)
+     * Delivery Address (required for Delivery orders)
+   - Click "Place Order" to confirm
+
+4. ORDER CONFIRMATION
+   - Order is placed and appears in "My Orders" section
+   - Real-time tracking available in "Order Tracking" section
+
+Fulfillment Types:
+  - Dine-in: No shipping fee. Enjoy your order in-store.
+  - Delivery: 15.000 VND shipping fee. Delivered to your address.
+  - Take-away: No shipping fee. Pick up at counter.
+
+Tax Rate: 15% applied on subtotal.
+
+
+================================================================================
+[SECTION 5] SHIPPING & DELIVERY POLICIES
+================================================================================
+
+Delivery Fee: 15.000 VND (flat rate for all delivery orders)
+Free Shipping: Orders over 200.000 VND get FREE delivery!
+Estimated Delivery Time: 15–30 minutes (depending on distance)
+Delivery Hours: Same as store hours — 07:00 AM to 10:00 PM
+
+Delivery Coverage Area:
+  - Currently serving within Addis Ababa metropolitan area
+  - Coverage radius: approximately 10 km from store locations
+
+Address Management:
+  - Customers can save up to 5 addresses in their Address Book
+  - One address can be set as "Default" to auto-fill at checkout
+  - Addresses can be managed in Settings → Address Book
+
+Delivery Status Tracking:
+  - Order Placed → Preparing → On the Way → Delivered
+  - Real-time tracking available in "Order Tracking" section
+  - Notifications sent at each step
+
+
+================================================================================
+[SECTION 6] PAYMENT INFORMATION
+================================================================================
+
+Accepted Payment Methods:
+  - Cash on Delivery (COD)
+  - Bank Transfer
+  - E-wallet (ZaloPay, MoMo, VNPay)
+  - Credit/Debit Card (Visa, Mastercard)
+
+Payment Notes:
+  - All prices displayed include base price only
+  - Tax (15%) is calculated at checkout
+  - Shipping fee (15.000 VND) is added for delivery orders
+  - Payment is processed after order confirmation
+
+Receipt:
+  - Digital receipt sent to email (if provided)
+  - Physical receipt available at counter for dine-in/take-away orders
+
+
+================================================================================
+[SECTION 7] REFUND & CANCELLATION POLICIES
+================================================================================
+
+Order Cancellation:
+  - Orders can be canceled BEFORE the rider picks up the order
+  - To cancel: Go to "My Orders" → Select active order → Click "Cancel Order"
+  - A cancellation confirmation dialog will appear for safety
+  - Canceled orders cannot be reinstated — please reorder if needed
+
+Refund Policy:
+  - Online payment: Refund processed automatically to wallet/bank within 24 hours
+  - Cash payment: Collect refund at the Cashier Counter in-store
+  - Partial refunds are not available — full order amount will be refunded
+
+Re-ordering:
+  - Previously completed orders can be reordered from "My Orders" → History tab
+  - Click "Reorder" to add all items from a past order back to your cart
+
+
+================================================================================
+[SECTION 8] FREQUENTLY ASKED QUESTIONS (FAQs)
+================================================================================
+
+Q1: What is the refund policy for canceled orders?
+A1: Refunds will be automatically processed to your wallet/bank account within 24 hours for online payments. For cash payments, please collect your refund directly at the Cashier Counter.
+
+Q2: How can I change my delivery address?
+A2: Changes are only supported before the rider picks up the order. You can go to 'My Orders' to cancel the current order and reorder with a new address. Or update your default address in Settings.
+
+Q3: How many addresses can I save in the Address Book?
+A3: You can save up to 5 different addresses in your Address Book. Remember to set one as 'Default' to auto-fill at Checkout.
+
+Q4: How do I contact customer support?
+A4: You can call our Hotline at 1900 1234 (toll-free), send a message via Zalo, or Messenger. Support hours: 07:00 — 22:00 every day.
+
+Q5: What are your operating hours?
+A5: We are open from 07:00 AM to 10:00 PM every day, including weekends and public holidays.
+
+Q6: Do you offer free delivery?
+A6: Yes! Orders over 200.000 VND qualify for free delivery. Otherwise, a flat delivery fee of 15.000 VND applies.
+
+Q7: Can I customize my drink?
+A7: Currently, you can choose between Small, Medium, and Large sizes for eligible drinks. Additional customizations (sugar level, ice level, extra shots) will be available in a future update.
+
+Q8: How long does delivery take?
+A8: Estimated delivery time is 15–30 minutes depending on your distance from our store.
+
+Q9: What if my order arrives damaged or incorrect?
+A9: Please contact our support team immediately via Hotline (1900 1234) or Zalo with a photo of the issue. We will arrange a replacement or full refund within 24 hours.
+
+Q10: Can I schedule an order for later?
+A10: Scheduled ordering is not available yet. Currently, all orders are placed for immediate preparation. This feature is planned for a future update.
+
+Q11: Is there a loyalty or rewards program?
+A11: We are currently developing a loyalty program where you will earn points for every purchase. Stay tuned for updates! Expected launch: Q3 2026.
+
+Q12: Can I order for someone else (gift order)?
+A12: Yes! During checkout, simply enter the recipient's name, phone number, and delivery address in the customer info form. You can add a note for the rider if needed.
+
+Q13: What if I forgot to apply a promo code?
+A13: Unfortunately, promo codes cannot be applied after an order has been placed. Please make sure to enter any promo code before confirming your order. Contact support if you need assistance.
+
+Q14: Do you offer catering or bulk orders?
+A14: Yes, we accept bulk orders for events and corporate catering. Please contact us directly via Hotline or email at hello@matikocoffee.com at least 48 hours in advance.
+
+Q15: Are there any allergen warnings for your menu items?
+A15: Our products may contain common allergens including milk, nuts, wheat (gluten), and soy. If you have specific allergies, please contact our support team before ordering. Allergen information for each product will be available in a future menu update.
+
+
+================================================================================
+[SECTION 9] ORDER TRACKING STAGES
+================================================================================
+
+Tracking Stepper (Real-time Order Status):
+
+  Stage 1: ORDER PLACED ✓
+    - Your order has been received and confirmed.
+    - Estimated time: Immediately after checkout.
+
+  Stage 2: PREPARING ☕
+    - Our barista is crafting your order with care.
+    - Estimated time: 5–10 minutes.
+
+  Stage 3: ON THE WAY 🚗
+    - Your rider has picked up the order and is on the way.
+    - Estimated time: 10–20 minutes (delivery only).
+
+  Stage 4: DELIVERED ✅
+    - Your order has been delivered/completed.
+    - Enjoy your Cof fi experience!
+
+Note: For Dine-in and Take-away orders, Stage 3 is replaced with "Ready for Pickup".
+
+
+================================================================================
+[SECTION 10] ACCOUNT & SETTINGS
+================================================================================
+
+Profile Management:
+  - Edit display name and email
+  - Update profile avatar
+  - View order history
+
+Address Book:
+  - Add, edit, or remove saved addresses
+  - Set one address as default
+  - Maximum 5 addresses
+
+Notification Preferences:
+  - Order status updates
+  - Promotional offers and new arrivals
+  - Weekly digest of personalized recommendations
+
+App Preferences:
+  - Theme: Light mode (default) / Dark mode
+  - Language: English (more languages coming soon)
+
+
+================================================================================
+[SECTION 11] CHATBOT CONVERSATION GUIDELINES
+================================================================================
+
+Tone of Voice:
+  - Friendly, warm, and professional
+  - Use coffee-related emojis occasionally: ☕ 🫘 🥐
+  - Keep responses concise but helpful
+  - Always address customer by name if available
+
+Greeting Templates:
+  - "Hello! Welcome to Cof fi ☕ How can I help you today?"
+  - "Hi there! Ready to find your perfect brew? 🫘"
+  - "Welcome back! What can I get started for you? ☕"
+
+Fallback Response (when unable to answer):
+  - "I appreciate your question! Let me connect you with our support team for the best assistance. You can reach them at 1900 1234 or via Zalo."
+
+Escalation Triggers (connect to human support):
+  - Customer expresses frustration or anger
+  - Issue involves payment disputes or account security
+  - Request requires manual override (e.g., special dietary needs)
+  - Customer explicitly asks to speak with a human
+
+Quick Actions the chatbot can suggest:
+  - View Menu → Navigate to Menu tab
+  - Track Order → Navigate to Order Tracking tab
+  - Contact Support → Navigate to Support tab
+  - View FAQ → Navigate to Help Center tab
+  - Check Cart → Open cart sidebar
+
+
+================================================================================
+[SECTION 12] PROMOTIONAL & SEASONAL INFORMATION
+================================================================================
+
+Current Promotions:
+  - Free delivery on orders over 200.000 VND
+  - New customer: 10% off first order (code: WELCOME10)
+
+Seasonal Specials (Subject to change):
+  - Summer 2026: Tropical Fruit Smoothie series (Coming soon)
+  - Rainy Season: Hot Chocolate deluxe + Croissant combo — 120.000 VND
+
+Happy Hour:
+  - Monday to Friday: 14:00 — 16:00
+  - 20% off all Non-Coffee drinks during Happy Hour
+
+Upcoming Features:
+  - Loyalty Points system (Q3 2026)
+  - Scheduled/Pre-ordering (Q3 2026)
+  - Drink customization (sugar, ice, extra shots) (Q4 2026)
+  - Table reservation for Dine-in (Q4 2026)
+
+
+================================================================================
+[SECTION 13] NEW UPDATED RULES & FAQ DATASET (2026-04-02)
+================================================================================
+
+1. Thông tin thương hiệu & Không gian:
+   - Tên quán: Cof fi (hoặc Aroma Coffee / Aroma theo dataset của khách).
+   - Giờ mở cửa: 07:00 – 22:30 hàng ngày.
+   - Tiện ích: Wifi miễn phí (Mật khẩu: Aroma2024), bãi giữ xe miễn phí có bảo vệ hỗ trợ dắt xe.
+   - Không gian: Có khu vực máy lạnh làm việc (nhiều ổ điện) và khu vực ngoài trời cho phép mang thú cưng nhỏ.
+
+2. Kích cỡ (Size):
+   - Coffee: S (295ml), M (355ml), L (475ml).
+   - Non coffee: S (355ml), M (475ml), L (592ml).
+
+3. Quy trình Đặt hàng & Giao hàng:
+   - Kênh đặt hàng: Qua Website order.aroma.vn, App Aroma hoặc Hotline 0393017401.
+   - Hủy đơn: Chỉ được hủy đơn khi trạng thái là "Đang chờ xác nhận". Nếu tài xế đã nhận đơn hoặc quán đã pha chế thì không thể hủy trực tuyến.
+
+4. Thanh toán & Hoàn tiền:
+   - Phương thức thanh toán: Tiền mặt (COD), Ví MoMo, ZaloPay, ShopeePay, Thẻ ATM/Visa/Mastercard.
+   - Chính sách hoàn tiền (Refund): Nếu đơn hàng bị lỗi hoặc hủy thành công:
+     + Ví điện tử/Thẻ nội địa: Hoàn trong 7 ngày làm việc.
+     + Thẻ quốc tế: 30 - 45 ngày làm việc (theo chu kỳ sao kê).
+
+--- BỘ CÂU HỎI THƯỜNG GẶP (FAQ TEST CASES) ---
+
+Hỏi: Quán có chỗ đậu xe hơi không em?
+Đáp: Dạ có, Aroma Coffee có bãi giữ xe miễn phí ngay phía trước và có bảo vệ hỗ trợ dắt xe cho mình ạ.
+
+Hỏi: Mật khẩu wifi là gì vậy?
+Đáp: Dạ mật khẩu Wifi của quán là Aroma2024 ạ.
+
+Hỏi: Cho mình hỏi size L của Iced chocolate là bao nhiêu ml?
+Đáp: Dạ, đối với dòng trà (non coffee), size L có dung tích là 592ml anh/chị nhé.
+
+Hỏi: Mình vừa đặt đơn qua App nhưng muốn hủy thì làm sao?
+Đáp: Dạ, anh/chị có thể bấm Hủy trên App nếu đơn đang ở trạng thái "Chờ xác nhận". Nếu tài xế đã đi, anh/chị vui lòng liên hệ Hotline 1800 1234 để được hỗ trợ gấp ạ.
+
+Hỏi: Mình thanh toán qua MoMo mà đơn bị hủy, bao lâu thì nhận lại tiền?
+Đáp: Dạ, tiền sẽ được hoàn trả về ví MoMo của mình trong tối đa 7 ngày làm việc ạ.
+
+Hỏi: Nước uống có vật lạ thì khiếu nại ở đâu?
+Đáp: Aroma thành thật xin lỗi về trải nghiệm này. Anh/chị vui lòng gửi hình ảnh/video kèm mã đơn hàng qua Fanpage hoặc gọi Hotline 1800 1234. Quán sẽ kiểm tra và đổi món mới hoặc hoàn tiền ngay trong vòng 24h ạ.
+
+Hỏi: Mình mang mèo vào quán được không?
+Đáp: Dạ được ạ, Cof fi có khu vực sân vườn ngoài trời rất thoáng mát dành cho các bạn nhỏ bốn chân, anh/chị cứ mang bé theo nhé.
+
+================================================================================
+  END OF KNOWLEDGE BASE
+================================================================================

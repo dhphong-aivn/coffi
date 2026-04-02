@@ -178,3 +178,105 @@
     @apply font-sans;
   }
 }
+
+/* Chat Markdown Styles */
+.chat-markdown {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.chat-markdown p {
+  margin-bottom: 0.5em;
+}
+
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown strong {
+  font-weight: 700;
+  color: var(--color-primary-container);
+}
+
+.chat-markdown em {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.chat-markdown ul,
+.chat-markdown ol {
+  padding-left: 1.25em;
+  margin: 0.4em 0;
+}
+
+.chat-markdown ul {
+  list-style-type: disc;
+}
+
+.chat-markdown ol {
+  list-style-type: decimal;
+}
+
+.chat-markdown li {
+  margin-bottom: 0.25em;
+  line-height: 1.5;
+}
+
+.chat-markdown code {
+  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+  background: var(--color-primary-container);
+  color: #fff;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+.chat-markdown pre {
+  margin: 0.5em 0;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.chat-markdown pre code {
+  display: block;
+  padding: 0.75em 1em;
+  font-size: 0.78em;
+  line-height: 1.5;
+  background: var(--color-primary-container);
+  color: #e6e2dc;
+}
+
+.chat-markdown blockquote {
+  border-left: 3px solid var(--color-primary-container);
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: var(--color-secondary);
+  font-style: italic;
+}
+
+.chat-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: 0.8em;
+}
+
+.chat-markdown th,
+.chat-markdown td {
+  padding: 0.35em 0.6em;
+  border: 1px solid var(--color-outline-variant);
+  text-align: left;
+}
+
+.chat-markdown th {
+  background: var(--color-surface-container-high);
+  font-weight: 700;
+  color: var(--color-primary-container);
+}
+
+.chat-markdown a {
+  color: var(--color-primary-container);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

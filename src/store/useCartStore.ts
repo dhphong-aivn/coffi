@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { TOPPINGS } from '@/data/menu-options';
 
 export interface CartItem {
   id: string;
@@ -7,7 +8,9 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string;
-  type?: string; 
+  type?: string;
+  sugarLevel?: number;
+  toppings?: string[];
 }
 
 interface CartState {
@@ -15,6 +18,7 @@ interface CartState {
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  updateItemToppings: (id: string, toppings: string[]) => void;
   clearCart: () => void;
   getSubTotal: () => number;
 }
@@ -61,10 +65,19 @@ export const useCartStore = create<CartState>()(
           items: state.items.map((i) => (i.id === id ? { ...i, quantity } : i))
         };
       }),
+      updateItemToppings: (id, toppings) => set((state) => ({
+        items: state.items.map((i) => (i.id === id ? { ...i, toppings } : i))
+      })),
       clearCart: () => set({ items: [] }),
       getSubTotal: () => {
         const items = get().items;
-        return items.reduce((total, item) => total + item.price * item.quantity, 0);
+        return items.reduce((total, item) => {
+          const toppingTotal = (item.toppings || []).reduce((sum, tid) => {
+            const t = TOPPINGS.find(tp => tp.id === tid);
+            return sum + (t?.price || 0);
+          }, 0);
+          return total + (item.price + toppingTotal) * item.quantity;
+        }, 0);
       }
     }),
     {

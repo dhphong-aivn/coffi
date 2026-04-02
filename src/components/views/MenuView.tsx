@@ -3,6 +3,7 @@
 import { Search, SlidersHorizontal, Plus, Minus } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/store/useCartStore";
+import { SIZE_MAP, SUGAR_LEVELS } from "@/data/menu-options";
 
 const CATEGORIES = ["All", "Coffee", "Non Coffee", "Snack", "Dessert"];
 
@@ -76,7 +77,7 @@ const PRODUCTS = [
     name: "Butter Croissant",
     category: "Dessert",
     price: 55000,
-    image: "https://images.unsplash.com/photo-1549903072-7e6e0bedb7bc?q=80&w=600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1530610476181-d83430b64dcd?q=80&w=600&auto=format&fit=crop",
     hasSizes: false,
   },
   {
@@ -117,24 +118,37 @@ interface Product {
 function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCartStore();
   const [quantity, setQuantity] = useState(1);
-  const [size, setSize] = useState("Medium");
+  const [size, setSize] = useState("M");
+  const [sugar, setSugar] = useState(70);
+
+  const isDrink = product.category === 'Coffee' || product.category === 'Non Coffee';
 
   const getPrice = () => {
-    if (!product.hasSizes) return product.price;
-    if (size === "Small") return product.price - 5000;
-    if (size === "Large") return product.price + 3000;
-    return product.price;
+    let base = product.price;
+    if (product.hasSizes) {
+      if (size === "S") base -= 5000;
+      if (size === "L") base += 3000;
+    }
+    return base;
   };
 
   const currentPrice = getPrice();
 
   const handleAddToCart = () => {
+    const itemId = [
+      product.id,
+      product.hasSizes ? size : null,
+      isDrink ? `s${sugar}` : null,
+    ].filter(Boolean).join('-');
+
     addItem({
-      id: product.id + "-" + size,
+      id: itemId,
       name: product.hasSizes ? `${size} ${product.name}` : product.name,
       price: currentPrice,
       quantity,
       image: product.image,
+      type: isDrink ? 'drink' : 'food',
+      sugarLevel: isDrink ? sugar : undefined,
     });
     setQuantity(1);
   };
@@ -154,7 +168,7 @@ function ProductCard({ product }: { product: Product }) {
           <h3 className="font-headline text-xl text-primary-container">{product.name}</h3>
           <p className="text-secondary font-bold font-body text-lg mt-1 tracking-tight">{currentPrice.toLocaleString('vi-VN')} VND</p>
         </div>
-        
+
         {product.hasSizes && (
           <div className="flex items-center bg-surface-container px-3 py-1 rounded-full gap-3">
             <button
@@ -174,21 +188,48 @@ function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      {product.hasSizes && (
-        <div className="flex gap-2">
-          {["Small", "Medium", "Large"].map((s) => (
-            <button
-              key={s}
-              onClick={() => setSize(s)}
-              className={`flex-1 py-2 text-xs font-bold font-body rounded-full cursor-pointer transition-colors ${
-                size === s
-                  ? "bg-primary-container text-white"
-                  : "bg-surface-container text-secondary"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+      {/* Size + Sugar — 2 Column Compact */}
+      {isDrink && (
+        <div className={product.hasSizes ? "grid grid-cols-2 gap-3" : ""}>
+          {product.hasSizes && (
+            <div>
+              <span className="text-[10px] text-secondary/60 uppercase font-bold font-body tracking-wider block mb-1">Size</span>
+              <div className="flex gap-1">
+                {SIZE_MAP.map((s) => (
+                  <button
+                    key={s.key}
+                    onClick={() => setSize(s.key)}
+                    title={s.label}
+                    className={`flex-1 py-2 text-xs font-bold font-body rounded-full cursor-pointer transition-colors ${
+                      size === s.key
+                        ? "bg-primary-container text-white"
+                        : "bg-surface-container text-secondary"
+                    }`}
+                  >
+                    {s.key}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div>
+            <span className="text-[10px] text-secondary/60 uppercase font-bold font-body tracking-wider block mb-1">Sugar %</span>
+            <div className="flex gap-1">
+              {SUGAR_LEVELS.map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setSugar(level)}
+                  className={`flex-1 py-2 text-xs font-bold font-body rounded-full cursor-pointer transition-colors ${
+                    sugar === level
+                      ? "bg-primary-container text-white"
+                      : "bg-surface-container text-secondary"
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

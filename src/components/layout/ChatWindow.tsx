@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { X, Send, Bot, User } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { X, Send, Bot, User, RefreshCw } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatMessage {
   id: number;
@@ -11,36 +13,46 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: 1,
-    text: "Hello! Welcome to Cof fi ☕ How can I help you today?",
-    sender: "bot",
-    timestamp: new Date(),
-  },
-];
+const WELCOME_MESSAGE: ChatMessage = {
+  id: 1,
+  text: "Xin chào! Chào mừng đến **Cof fi** ☕\n\nTôi có thể giúp gì cho bạn hôm nay?",
+  sender: "bot",
+  timestamp: new Date(),
+};
 
 export function ChatWindow() {
   const { isChatOpen, setChatOpen, isCartCollapsed } = useAppStore();
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isTyping, scrollToBottom]);
 
   if (!isChatOpen) return null;
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setMessages([]);
+
+    setTimeout(() => {
+      setMessages([{ ...WELCOME_MESSAGE, id: Date.now(), timestamp: new Date() }]);
+      setIsRefreshing(false);
+    }, 500);
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isTyping) return;
 
     const userMessage: ChatMessage = {
-      id: messages.length + 1,
+      id: Date.now(),
       text: inputValue.trim(),
       sender: "user",
       timestamp: new Date(),
@@ -48,27 +60,66 @@ export function ChatWindow() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+    setIsTyping(true);
 
-    // Bot auto-reply
-    setTimeout(() => {
-      const botReplies = [
-        "Thanks for your message! Our team will get back to you shortly.",
-        "Would you like to see our today's specials? We have a great Matcha Latte!",
-        "You can track your order in the 'My Orders' section on the left sidebar.",
-        "Our store is open from 7:00 AM to 10:00 PM. Feel free to visit us anytime!",
-        "For delivery, we offer free shipping on orders over 200.000 VND!",
-      ];
-      const randomReply = botReplies[Math.floor(Math.random() * botReplies.length)];
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          text: randomReply,
-          sender: "bot",
-          timestamp: new Date(),
-        },
-      ]);
-    }, 1000);
+    const botMessageId = Date.now() + 1;
+    // Thêm một tin nhắn rỗng từ bot để chuẩn bị nhận Streaming
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: botMessageId,
+        text: "",
+        sender: "bot",
+        timestamp: new Date(),
+      },
+    ]);
+
+    try {
+      // Gộp state hiện tại và tin nhắn vừa thêm làm history gửi lên server
+      const conversation = [...messages, userMessage];
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: conversation }),
+      });
+
+      if (!res.ok) throw new Error("API Error");
+      if (!res.body) throw new Error("No response body");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+      let botResponseText = "";
+
+      setIsTyping(false); // Xóa trạng thái typing indicator khi bắt đầu stream
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          botResponseText += chunk;
+          
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === botMessageId
+                ? { ...msg, text: botResponseText }
+                : msg
+            )
+          );
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      setIsTyping(false);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === botMessageId
+            ? { ...msg, text: "**Lỗi hệ thống.** 9Router hiện không phản hồi, vui lòng thử lại sau." }
+            : msg
+        )
+      );
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -78,9 +129,8 @@ export function ChatWindow() {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-  };
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div
@@ -89,22 +139,40 @@ export function ChatWindow() {
       }`}
     >
       {/* Header */}
-      <div className="bg-primary-container px-6 py-4 flex items-center justify-between flex-shrink-0">
+      <div className="bg-primary-container px-5 py-3.5 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
             <Bot size={22} className="text-white" />
           </div>
           <div>
             <h4 className="font-headline text-white text-base font-bold">Cof fi Assistant</h4>
-            <p className="text-white/70 text-xs font-body">Online</p>
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              </span>
+              <span className="text-white/70 text-xs font-body">Online</span>
+            </div>
           </div>
         </div>
-        <button
-          onClick={() => setChatOpen(false)}
-          className="text-white/70 hover:text-white transition-colors cursor-pointer"
-        >
-          <X size={22} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleRefresh}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+            title="Reset conversation"
+          >
+            <RefreshCw
+              size={16}
+              className={isRefreshing ? "animate-spin" : ""}
+            />
+          </button>
+          <button
+            onClick={() => setChatOpen(false)}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -124,15 +192,23 @@ export function ChatWindow() {
               {msg.sender === "bot" ? <Bot size={14} /> : <User size={14} />}
             </div>
             <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl font-body text-sm leading-relaxed ${
+              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                 msg.sender === "bot"
                   ? "bg-surface-container text-on-surface rounded-bl-md"
                   : "bg-primary-container text-white rounded-br-md"
               }`}
             >
-              {msg.text}
+              {msg.sender === "bot" ? (
+                <div className="chat-markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.text}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <span className="font-body">{msg.text}</span>
+              )}
               <p
-                className={`text-[10px] mt-1 ${
+                className={`text-[10px] mt-1.5 ${
                   msg.sender === "bot" ? "text-secondary/50" : "text-white/60"
                 }`}
               >
@@ -141,6 +217,23 @@ export function ChatWindow() {
             </div>
           </div>
         ))}
+
+        {/* Typing Indicator */}
+        {isTyping && (
+          <div className="flex items-end gap-2">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 bg-primary-container/10 text-primary-container">
+              <Bot size={14} />
+            </div>
+            <div className="bg-surface-container px-4 py-3 rounded-2xl rounded-bl-md">
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-secondary/40 rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 bg-secondary/40 rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 bg-secondary/40 rounded-full animate-bounce [animation-delay:300ms]" />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -149,16 +242,16 @@ export function ChatWindow() {
         <div className="flex items-center gap-2 bg-surface-container-highest rounded-xl px-4 py-2">
           <input
             className="flex-1 bg-transparent border-none outline-none text-sm font-body text-on-surface placeholder:text-secondary/50"
-            placeholder="Type a message..."
+            placeholder="Nhập tin nhắn..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
           />
           <button
             onClick={handleSend}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || isTyping}
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-              inputValue.trim()
+              inputValue.trim() && !isTyping
                 ? "bg-primary-container text-white hover:bg-primary active:scale-90"
                 : "bg-surface-container text-secondary/40 cursor-not-allowed"
             }`}

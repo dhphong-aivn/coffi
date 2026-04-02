@@ -54,7 +54,7 @@ export function SettingsView() {
               <h4 className="font-body font-bold text-primary-container">Home</h4>
               <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Default</span>
             </div>
-            <p className="text-secondary text-sm ml-8">123 Nguyen Hue, D.1, HCMC</p>
+            <p className="text-secondary text-sm ml-8">Chưa có địa chỉ — nhấn Edit để thêm</p>
             <div className="flex gap-4 mt-3 ml-8">
               <button className="text-xs font-bold text-primary-container hover:underline cursor-pointer">Edit</button>
               <button className="text-xs font-bold text-error/70 hover:underline cursor-pointer">Delete</button>

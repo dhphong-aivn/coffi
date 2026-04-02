@@ -34,3 +34,10 @@ yarn-error.log*
 # Environment
 .env*
 .vercel
+
+# Personal sensitive data
+TNDN Bosung/
+
+# Temp Draft Docs
+quy_trinh.md
+xem_xet.md

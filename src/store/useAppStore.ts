@@ -8,9 +8,8 @@ export type CheckoutStep = 'cart' | 'info';
 export interface CustomerInfo {
   name: string;
   phone: string;
-  age: string;
-  email: string;
   address: string;
+  note: string;
 }
 
 interface AppState {
@@ -45,9 +44,8 @@ interface AppState {
 const initialCustomerInfo: CustomerInfo = {
   name: '',
   phone: '',
-  age: '',
-  email: '',
   address: '',
+  note: '',
 };
 
 export const useAppStore = create<AppState>((set) => ({
