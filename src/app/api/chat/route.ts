@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     // Khởi tạo streaming với OpenAI
     const response = await openai.chat.completions.create({
-      model: process.env.LLM_MODEL || "google/gemini-2.5-flash", // Hỗ trợ Model động từ OpenRouter
+      model: process.env.LLM_MODEL_NAME || process.env.LLM_MODEL || "google/gemini-2.5-flash", // Hỗ trợ Model động từ OpenRouter
       messages: payloadMessages,
       stream: true,
     });
