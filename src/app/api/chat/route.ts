@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     const systemMessage = {
-      role: "system",
+      role: "system" as const,
       content: getSystemPrompt()
     };
 
@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
     const payloadMessages = [
       systemMessage,
       ...messages.map((m: any) => ({
-        role: m.sender === "user" ? "user" : "assistant",
-        content: m.text
+        role: (m.sender === "user" ? "user" : "assistant") as "user" | "assistant",
+        content: String(m.text || "")
       }))
     ];
 
