@@ -5,8 +5,8 @@ import { join } from "path";
 
 // Khởi tạo SDK OpenAI chính thức với Base URL tùy chỉnh và API Key của người dùng cung cấp
 const openai = new OpenAI({
-  apiKey: "sk-4bd27113b7dc78d1-lh6jld-f4f9c69f",
-  baseURL: "https://9router.vuhai.io.vn/v1",
+  apiKey: process.env.OPENROUTER_API_KEY || process.env.LLM_API_KEY || "", 
+  baseURL: process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1",
 });
 
 // Cache nội dung System Prompt để không đọc file IO trên mỗi request
