@@ -4,12 +4,9 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
 // Khởi tạo SDK OpenAI chính thức với Base URL tùy chỉnh và API Key của người dùng cung cấp
-const apiKey = process.env.OPENROUTER_API_KEY || process.env.LLM_API_KEY || process.env.API_LLM || process.env.api_llm || "";
-const baseURL = process.env.LLM_BASE_URL || process.env.LLM_URL || process.env.llm_url || "https://openrouter.ai/api/v1";
-
 const openai = new OpenAI({
-  apiKey: apiKey, 
-  baseURL: baseURL,
+  apiKey: process.env.OPENROUTER_API_KEY || process.env.LLM_API_KEY || "",
+  baseURL: process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1",
 });
 
 // Cache nội dung System Prompt để không đọc file IO trên mỗi request
@@ -17,7 +14,7 @@ let cachedSystemPrompt: string | null = null;
 
 function getSystemPrompt() {
   if (cachedSystemPrompt) return cachedSystemPrompt;
-  
+
   let kb = "";
   try {
     const filePath = join(process.cwd(), "src", "data", "chatbot_data.txt");
@@ -69,12 +66,9 @@ export async function POST(req: NextRequest) {
       }))
     ];
 
-    // Cấu hình Model Name
-    const modelName = process.env.LLM_MODEL_NAME || process.env.LLM_MODEL || process.env.MODEL_LLM || process.env.model_llm || "google/gemini-2.5-flash";
-
     // Khởi tạo streaming với OpenAI
     const response = await openai.chat.completions.create({
-      model: modelName,
+      model: process.env.LLM_MODEL || "google/gemini-2.5-flash", // Hỗ trợ Model động từ OpenRouter
       messages: payloadMessages,
       stream: true,
     });
