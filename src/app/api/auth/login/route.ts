@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const GAS_URL = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL || "";
+const GAS_URL = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL || "https://script.google.com/macros/s/AKfycbwXj-jGVVjYQyTED2I-gSiV5fMGfDHIs5-fOEqn-ALOAQqSQ2NmXnIWklBZhlpMK1mEAw/exec";
 const GAS_SECRET = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_SECRET || "coffi-2026-xyz";
 
 export async function POST(req: NextRequest) {
