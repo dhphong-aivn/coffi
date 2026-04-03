@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Serif, Manrope } from "next/font/google";
+import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
 const notoSerif = Noto_Serif({
@@ -29,7 +30,9 @@ export default function RootLayout({
       lang="en"
       className={`light ${notoSerif.variable} ${manrope.variable} h-full antialiased`}
     >
-      <body className="font-body min-h-screen flex flex-col">{children}</body>
+      <body className="font-body min-h-screen flex flex-col">
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }
