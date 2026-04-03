@@ -19,9 +19,6 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
 }
 
-const GAS_URL = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_URL || "";
-const GAS_SECRET = process.env.NEXT_PUBLIC_GOOGLE_SHEETS_SECRET || "coffi-2026-xyz";
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -32,14 +29,10 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
-          const res = await fetch(GAS_URL, {
+          const res = await fetch("/api/auth/login", {
             method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify({
-              apiSecret: GAS_SECRET,
-              action: "CHECK_LOGIN",
-              data: { email, password }
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
           });
 
           const result = await res.json();

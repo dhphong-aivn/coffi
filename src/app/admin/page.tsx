@@ -241,6 +241,14 @@ function OrdersView({ role }: { role: string }) {
     Cancelled: "bg-red-100 text-red-600",
   };
 
+  const statusLabel: Record<string, string> = {
+    Pending: "Đang chờ",
+    Processing: "Đang xử lý",
+    Ready: "Đã pha xong",
+    Completed: "Hoàn thành",
+    Cancelled: "Đã hủy",
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -261,7 +269,7 @@ function OrdersView({ role }: { role: string }) {
                   <div className="flex items-center gap-2">
                     <span className="font-headline font-bold text-on-surface">{order.orderId}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${statusColor[order.status] || "bg-gray-100"}`}>
-                      {order.status}
+                      {statusLabel[order.status] || order.status}
                     </span>
                   </div>
                   <p className="text-xs text-secondary/60 font-body mt-0.5">

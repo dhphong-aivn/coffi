@@ -20,7 +20,7 @@
 // ─── CONFIG ─────────────────────────────────────────────────────
 var CONFIG = {
   API_SECRET: "coffi-2026-xyz",
-  ALERT_EMAIL: "your-email@gmail.com",              // ← ĐỔI
+  ALERT_EMAIL: "phong1992002@gmail.com",              // ← ĐỔI
   TELEGRAM_BOT_TOKEN: "",                            // ← ĐỔI (từ @BotFather)
   TELEGRAM_CHAT_ID: "",                              // ← ĐỔI (chat ID nhận thông báo)
   SHEETS: {
@@ -48,6 +48,9 @@ function doPost(e) {
     switch (payload.action) {
       // ── Auth ──
       case "CHECK_LOGIN":       return handleCheckLogin(payload.data);
+
+      // ── Debug ──
+      case "DEBUG_USERS":       return handleDebugUsers();
 
       // ── Menu (Public Read, Admin Write) ──
       case "GET_MENU":          return handleGetMenu();
@@ -96,6 +99,34 @@ function doGet(e) {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  DEBUG — XÓA SAU KHI FIX XONG
+// ════════════════════════════════════════════════════════════════
+
+function handleDebugUsers() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var allSheetNames = ss.getSheets().map(function(s) { return s.getName(); });
+
+  var sheet = ss.getSheetByName("Orders");
+  if (!sheet) {
+    return jsonResponse({
+      debug: true,
+      error: "Sheet 'Orders' KHÔNG TỒN TẠI",
+      allSheets: allSheetNames
+    });
+  }
+
+  var data = sheet.getDataRange().getValues();
+  return jsonResponse({
+    debug: true,
+    sheetName: sheet.getName(),
+    totalRows: data.length,
+    headers: data[0] || [],
+    allData: data,
+    allSheets: allSheetNames
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
 //  AUTH & RBAC
 // ════════════════════════════════════════════════════════════════
 
@@ -139,10 +170,6 @@ function handleCheckLogin(data) {
   return jsonResponse({ success: false, error: "Email không tồn tại trong hệ thống" });
 }
 
-/**
- * Kiểm tra quyền — gọi ở đầu mỗi hàm cần bảo vệ.
- * Ném Error nếu không đủ quyền.
- */
 function requireRole(userRole, allowedRoles) {
   if (!userRole || allowedRoles.indexOf(userRole) === -1) {
     throw new Error("Bạn không có quyền thực hiện thao tác này (cần: " + allowedRoles.join("/") + ")");
@@ -198,24 +225,15 @@ function handleAddMenuItem(data, userRole) {
     return jsonResponse({ success: false, error: "menuId, name, unitPrice là bắt buộc" });
   }
 
-  // Check duplicate
   var existing = findRowByCol(sheet, 0, menuId);
   if (existing > 0) {
     return jsonResponse({ success: false, error: "Menu ID '" + menuId + "' đã tồn tại" });
   }
 
   sheet.appendRow([
-    menuId,
-    data.name,
-    data.catId || "",
-    data.supplierId || "",
-    Number(data.unitPrice),
-    Number(data.minStock || 0),
-    data.imageUrl || "",
-    true,
-    Number(data.sizeS_Adj || -5000),
-    Number(data.sizeL_Adj || 3000),
-    data.description || ""
+    menuId, data.name, data.catId || "", data.supplierId || "",
+    Number(data.unitPrice), Number(data.minStock || 0), data.imageUrl || "",
+    true, Number(data.sizeS_Adj || -5000), Number(data.sizeL_Adj || 3000), data.description || ""
   ]);
 
   return jsonResponse({ success: true, message: "Thêm món thành công", menuId: menuId });
@@ -312,29 +330,18 @@ function handleSubmitOrder(data) {
   var orderId = "CF-" + Date.now().toString(36).toUpperCase();
   var timestamp = formatTimestamp();
 
-  // Serialize items
   var itemsJson = JSON.stringify(data.items || []);
   var itemsSummary = (data.items || []).map(function(i) {
     return (i.name || "?") + " x" + (i.quantity || 1);
   }).join(", ");
 
   sheet.appendRow([
-    orderId,
-    data.phone || "",
-    data.name || "Khách",
-    itemsJson,
-    Number(data.totalAmount || 0),
-    data.fulfillment || "Unknown",
-    data.status || "Pending",
-    data.source || "Unknown",
-    data.note || "",
-    timestamp
+    orderId, data.phone || "", data.name || "Khách", itemsJson,
+    Number(data.totalAmount || 0), data.fulfillment || "Unknown",
+    data.status || "Pending", data.source || "Unknown", data.note || "", timestamp
   ]);
 
-  // 🔔 MANDATORY: Gửi Telegram thông báo đơn mới
   sendNewOrderTelegram(orderId, data.name, data.phone, itemsSummary, data.totalAmount, timestamp);
-
-  // Gửi Email cảnh báo (backup)
   sendNewOrderEmail(orderId, data.name, data.phone, itemsSummary, data.totalAmount, timestamp);
 
   return jsonResponse({ success: true, orderId: orderId, message: "Đặt hàng thành công" });
@@ -352,17 +359,10 @@ function handleGetOrders(userRole) {
     try { itemsParsed = JSON.parse(rows[i][3]); } catch(e) {}
 
     orders.push({
-      orderId:     rows[i][0],
-      phone:       rows[i][1],
-      name:        rows[i][2],
-      items:       itemsParsed,
-      itemsRaw:    rows[i][3],
-      total:       rows[i][4],
-      fulfillment: rows[i][5],
-      status:      rows[i][6],
-      source:      rows[i][7],
-      note:        rows[i][8],
-      timestamp:   rows[i][9]
+      orderId: rows[i][0], phone: rows[i][1], name: rows[i][2],
+      items: itemsParsed, itemsRaw: rows[i][3], total: rows[i][4],
+      fulfillment: rows[i][5], status: rows[i][6], source: rows[i][7],
+      note: rows[i][8], timestamp: rows[i][9]
     });
   }
 
@@ -376,13 +376,15 @@ function handleUpdateOrderStatus(data, userRole) {
   var row = findRowByCol(sheet, 0, data.orderId);
   if (row < 0) return jsonResponse({ success: false, error: "Đơn hàng không tồn tại" });
 
-  sheet.getRange(row, 7).setValue(data.status); // Cột Status (G)
+  var cell = sheet.getRange(row, 7);
+  cell.clearDataValidations();
+  cell.setValue(data.status);
+  
   return jsonResponse({ success: true, message: "Cập nhật trạng thái → " + data.status });
 }
 
 // ════════════════════════════════════════════════════════════════
 //  STOCK — REALTIME CALCULATION
-//  Stock = Σ(Restock qty) − Σ(Orders qty sold)
 // ════════════════════════════════════════════════════════════════
 
 function handleGetStock() {
@@ -396,36 +398,35 @@ function handleGetStock() {
   var restockRows = restockSheet.getDataRange().getValues();
   var orderRows = orderSheet.getDataRange().getValues();
 
-  // 1. Tính tổng nhập (Restock)
+  var stockList = coreCalculateStock(menuRows, restockRows, orderRows);
+
+  return jsonResponse({ success: true, stock: stockList });
+}
+
+function coreCalculateStock(menuRows, restockRows, orderRows) {
   var restockMap = {};
   for (var r = 1; r < restockRows.length; r++) {
     var rid = String(restockRows[r][1]).toLowerCase().trim();
     restockMap[rid] = (restockMap[rid] || 0) + Number(restockRows[r][2] || 0);
   }
 
-  // 2. Tính tổng xuất (Orders sold)
   var soldMap = {};
   for (var o = 1; o < orderRows.length; o++) {
     var status = String(orderRows[o][6]).toLowerCase();
-    if (status === "cancelled") continue; // Đơn bị hủy không tính
-
+    if (status === "cancelled") continue;
     try {
       var items = JSON.parse(orderRows[o][3]);
       for (var j = 0; j < items.length; j++) {
-        // Tìm menuId từ item — có thể nằm ở item.menuId hoặc cần normalize từ item.id
         var mId = String(items[j].menuId || items[j].id || "").toLowerCase().replace(/-[SML]-\d+$/, "");
-        if (mId) {
-          soldMap[mId] = (soldMap[mId] || 0) + Number(items[j].quantity || 1);
-        }
+        if (mId) soldMap[mId] = (soldMap[mId] || 0) + Number(items[j].quantity || 1);
       }
     } catch(e) {}
   }
 
-  // 3. Tính stock cho từng menu item
   var stockList = [];
   for (var m = 1; m < menuRows.length; m++) {
     var menuId = String(menuRows[m][0]).toLowerCase().trim();
-    var totalIn  = restockMap[menuId] || 0;
+    var totalIn = restockMap[menuId] || 0;
     var totalOut = soldMap[menuId] || 0;
     var currentStock = totalIn - totalOut;
     var minStock = Number(menuRows[m][5] || 0);
@@ -436,22 +437,14 @@ function handleGetStock() {
     else if (currentStock <= minStock * 1.5) stockStatus = "low";
 
     stockList.push({
-      menuId:       menuId,
-      name:         menuRows[m][1],
-      currentStock: currentStock,
-      minStock:     minStock,
-      totalIn:      totalIn,
-      totalOut:     totalOut,
-      status:       stockStatus
+      menuId: menuId, name: menuRows[m][1], currentStock: currentStock,
+      minStock: minStock, totalIn: totalIn, totalOut: totalOut, status: stockStatus
     });
   }
 
-  return jsonResponse({ success: true, stock: stockList });
+  return stockList;
 }
 
-/**
- * Check stock cho 1 item cụ thể — gọi bởi AI Chatbot trước khi suggest
- */
 function handleCheckItemStock(data) {
   var menuId = String(data.menuId || "").toLowerCase().trim();
   if (!menuId) return jsonResponse({ success: false, error: "menuId is required" });
@@ -460,22 +453,15 @@ function handleCheckItemStock(data) {
   var item = null;
 
   for (var i = 0; i < stockResult.stock.length; i++) {
-    if (stockResult.stock[i].menuId === menuId) {
-      item = stockResult.stock[i];
-      break;
-    }
+    if (stockResult.stock[i].menuId === menuId) { item = stockResult.stock[i]; break; }
   }
 
   if (!item) return jsonResponse({ success: true, available: true, stock: 999, message: "Không theo dõi tồn kho" });
 
   return jsonResponse({
-    success: true,
-    available: item.currentStock > 0,
-    stock: item.currentStock,
+    success: true, available: item.currentStock > 0, stock: item.currentStock,
     status: item.status,
-    message: item.currentStock <= 0
-      ? item.name + " hiện tạm hết hàng"
-      : item.name + " còn " + item.currentStock + " phần"
+    message: item.currentStock <= 0 ? item.name + " hiện tạm hết hàng" : item.name + " còn " + item.currentStock + " phần"
   });
 }
 
@@ -490,13 +476,8 @@ function handleRestock(data, userRole) {
   var timestamp = formatTimestamp();
 
   sheet.appendRow([
-    restockId,
-    data.menuId,
-    Number(data.quantity),
-    data.supplierId || "",
-    data.note || "",
-    data.createdBy || "staff",
-    timestamp
+    restockId, data.menuId, Number(data.quantity),
+    data.supplierId || "", data.note || "", data.createdBy || "staff", timestamp
   ]);
 
   return jsonResponse({ success: true, restockId: restockId, message: "Nhập kho thành công" });
@@ -507,7 +488,6 @@ function handleRestock(data, userRole) {
 // ════════════════════════════════════════════════════════════════
 
 function handleSaveLead(data) {
-  // Reuse existing Customers sheet if it exists, or create as part of Orders workflow
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("Customers");
 
@@ -543,9 +523,7 @@ function handleSaveLead(data) {
     ]);
   }
 
-  if (data.intent_level === "hot") {
-    sendHotLeadEmail(data, timestamp);
-  }
+  if (data.intent_level === "hot") sendHotLeadEmail(data, timestamp);
 
   return jsonResponse({ success: true, message: "Lead saved" });
 }
@@ -578,12 +556,8 @@ function handleAddUser(data, userRole) {
   var userId = "U" + String(sheet.getLastRow()).padStart(3, "0");
 
   sheet.appendRow([
-    userId,
-    data.email,
-    data.password || "123456",
-    data.fullName || "",
-    data.role || "staff",
-    true
+    userId, data.email, data.password || "123456",
+    data.fullName || "", data.role || "staff", true
   ]);
 
   return jsonResponse({ success: true, userId: userId });
@@ -611,32 +585,73 @@ function handleUpdateUser(data, userRole) {
 function handleGetDashboard(userRole) {
   requireRole(userRole, ["admin", "staff"]);
 
+  // Load sheets ONCE for both Dashboard and Stock
   var orderSheet = getOrCreateSheet(CONFIG.SHEETS.ORDERS, []);
-  var orderRows = orderSheet.getDataRange().getValues();
+  var menuSheet = getOrCreateSheet(CONFIG.SHEETS.MENU, []);
+  var restockSheet = getOrCreateSheet(CONFIG.SHEETS.RESTOCK, []);
 
+  // Use getDisplayValues() for orderRows to fix Date formatting bugs
+  var orderRows = orderSheet.getDataRange().getDisplayValues(); 
+  
   var today = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "dd/MM/yyyy");
-  var ordersToday = 0;
-  var revenueToday = 0;
-  var totalOrders = orderRows.length - 1;
-  var totalRevenue = 0;
-  var categoryRevenue = {};
+  var ordersToday = 0, revenueToday = 0;
+  var totalOrders = Math.max(0, orderRows.length - 1), totalRevenue = 0;
   var itemSales = {};
 
   for (var i = 1; i < orderRows.length; i++) {
-    var status = String(orderRows[i][6]).toLowerCase();
+    // Determine the status by carefully reading the raw string
+    var status = String(orderRows[i][6] || "").toLowerCase().trim();
     if (status === "cancelled") continue;
 
-    var orderTotal = Number(orderRows[i][4] || 0);
+    // Remove anything that isn't a digit (e.g. dots, commas). So 373.750 or 373,750 becomes 373750
+    var orderTotalStr = String(orderRows[i][4] || "");
+    var numericOnly = orderTotalStr.replace(/[^0-9]/g, "");
+    var orderTotal = Number(numericOnly) || 0;
+    
     totalRevenue += orderTotal;
 
-    // Check nếu là hôm nay
-    var orderDate = String(orderRows[i][9] || "");
-    if (orderDate.indexOf(today) === 0) {
+    var orderDate = String(orderRows[i][9] || "").trim();
+    var isToday = false;
+    
+    if (orderDate.indexOf(today) !== -1) {
+      isToday = true;
+    } else {
+      // Fallback robust parser for timestamps like "03/04/2026 13:14:52" vs JS "Fri Apr ..."
+      var firstWord = orderDate.split(" ")[0];
+      var parts = firstWord.split("/");
+      if (parts.length === 3) {
+        var p1 = parseInt(parts[0], 10);
+        var p2 = parseInt(parts[1], 10);
+        var p3 = parseInt(parts[2], 10);
+        
+        var now = new Date();
+        // Shift exact date to Vietnam time 
+        var vnTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+        var vnDay = vnTime.getDate();
+        var vnMonth = vnTime.getMonth() + 1;
+        var vnYear = vnTime.getFullYear();
+
+        if (
+          (p1 === vnDay && p2 === vnMonth && p3 === vnYear) ||
+          (p2 === vnDay && p1 === vnMonth && p3 === vnYear)
+        ) {
+          isToday = true;
+        }
+      } else if (orderDate.indexOf("GMT+0700") !== -1 || orderDate.indexOf("Indochina Time") !== -1) {
+          try {
+             var dObj = new Date(orderDate);
+             if (Utilities.formatDate(dObj, "Asia/Ho_Chi_Minh", "dd/MM/yyyy") === today) {
+                isToday = true;
+             }
+          } catch(err) {}
+      }
+    }
+
+    if (isToday) {
       ordersToday++;
       revenueToday += orderTotal;
     }
 
-    // Parse items cho biểu đồ
     try {
       var items = JSON.parse(orderRows[i][3]);
       for (var j = 0; j < items.length; j++) {
@@ -647,46 +662,44 @@ function handleGetDashboard(userRole) {
     } catch(e) {}
   }
 
-  // Stock alerts count
-  var stockResult = JSON.parse(handleGetStock().getContent());
+  // Calculate stock in memory instead of fetching HTTP again
+  var stockList = coreCalculateStock(
+    menuSheet.getDataRange().getValues(),
+    restockSheet.getDataRange().getValues(),
+    orderRows // Valid for stock too
+  );
+
   var lowStockCount = 0;
-  for (var s = 0; s < stockResult.stock.length; s++) {
-    if (stockResult.stock[s].status === "critical" || stockResult.stock[s].status === "out_of_stock") {
+  var stockAlerts = [];
+  for (var s = 0; s < stockList.length; s++) {
+    if (stockList[s].status === "critical" || stockList[s].status === "out_of_stock") {
       lowStockCount++;
+      stockAlerts.push(stockList[s]);
     }
   }
 
-  // Top 5 items
   var sortedItems = Object.keys(itemSales).map(function(k) {
     return { name: k, sold: itemSales[k] };
   }).sort(function(a, b) { return b.sold - a.sold; }).slice(0, 5);
 
-  // Dữ liệu chỉ admin thấy
   var adminData = {};
   if (userRole === "admin") {
-    adminData = {
-      totalRevenue: totalRevenue,
-      totalOrders: totalOrders
-    };
+    adminData = { totalRevenue: totalRevenue, totalOrders: totalOrders };
   }
 
   return jsonResponse({
     success: true,
     dashboard: {
-      ordersToday: ordersToday,
-      revenueToday: revenueToday,
-      lowStockCount: lowStockCount,
-      topItems: sortedItems,
-      stockAlerts: stockResult.stock.filter(function(s) {
-        return s.status === "critical" || s.status === "out_of_stock";
-      }),
+      ordersToday: ordersToday, revenueToday: revenueToday,
+      lowStockCount: lowStockCount, topItems: sortedItems,
+      stockAlerts: stockAlerts,
       admin: adminData
     }
   });
 }
 
 // ════════════════════════════════════════════════════════════════
-//  TELEGRAM ALERTS (Mandatory: New Order)
+//  TELEGRAM ALERTS
 // ════════════════════════════════════════════════════════════════
 
 function sendNewOrderTelegram(orderId, name, phone, items, total, timestamp) {
@@ -695,32 +708,22 @@ function sendNewOrderTelegram(orderId, name, phone, items, total, timestamp) {
   try {
     var totalFormatted = Number(total || 0).toLocaleString("vi-VN");
     var message = [
-      "🔔 *ĐƠN HÀNG MỚI*",
-      "",
+      "🔔 *ĐƠN HÀNG MỚI*", "",
       "📋 Mã: `" + orderId + "`",
       "👤 " + (name || "Khách") + " — " + (phone || "N/A"),
       "🧾 " + items,
       "💰 *" + totalFormatted + " VND*",
-      "⏰ " + timestamp,
-      "",
+      "⏰ " + timestamp, "",
       "→ Mở Dashboard để xác nhận đơn!"
     ].join("\n");
 
     var url = "https://api.telegram.org/bot" + CONFIG.TELEGRAM_BOT_TOKEN + "/sendMessage";
-
     UrlFetchApp.fetch(url, {
-      method: "post",
-      contentType: "application/json",
-      payload: JSON.stringify({
-        chat_id: CONFIG.TELEGRAM_CHAT_ID,
-        text: message,
-        parse_mode: "Markdown"
-      }),
+      method: "post", contentType: "application/json",
+      payload: JSON.stringify({ chat_id: CONFIG.TELEGRAM_CHAT_ID, text: message, parse_mode: "Markdown" }),
       muteHttpExceptions: true
     });
-  } catch (err) {
-    console.error("Telegram alert failed:", err);
-  }
+  } catch (err) { console.error("Telegram alert failed:", err); }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -731,56 +734,39 @@ function sendNewOrderEmail(orderId, name, phone, items, total, timestamp) {
   try {
     if (!CONFIG.ALERT_EMAIL) return;
     var totalFormatted = Number(total || 0).toLocaleString("vi-VN");
-
     var subject = "🔔 [Cof fi] Đơn hàng mới: " + orderId;
     var body = [
       "═══════════════════════════════════════",
       "  🔔 ĐƠN HÀNG MỚI — Cof fi",
-      "═══════════════════════════════════════",
-      "",
+      "═══════════════════════════════════════", "",
       "📋 Mã đơn:     " + orderId,
       "👤 Khách:       " + (name || "Khách") + " — " + (phone || "N/A"),
       "🧾 Món:         " + items,
       "💰 Tổng tiền:   " + totalFormatted + " VND",
-      "⏰ Thời gian:   " + timestamp,
-      "",
-      "→ Mở Dashboard để xác nhận đơn!",
-      "",
-      "Email tự động từ hệ thống Cof fi AI."
+      "⏰ Thời gian:   " + timestamp, "",
+      "→ Mở Dashboard để xác nhận đơn!"
     ].join("\n");
-
     MailApp.sendEmail(CONFIG.ALERT_EMAIL, subject, body);
-  } catch (err) {
-    console.error("Order email failed:", err);
-  }
+  } catch (err) { console.error("Order email failed:", err); }
 }
 
 function sendHotLeadEmail(data, timestamp) {
   try {
     if (!CONFIG.ALERT_EMAIL) return;
-
     var subject = "🔥 [Cof fi] Hot Lead: " + (data.name || "Khách") + " - " + data.phone;
     var body = [
       "═══════════════════════════════════════",
       "  🔥 HOT LEAD ALERT — Cof fi",
-      "═══════════════════════════════════════",
-      "",
+      "═══════════════════════════════════════", "",
       "📞 SĐT:          " + data.phone,
       "👤 Tên:           " + (data.name || "Chưa rõ"),
-      "📍 Địa chỉ:       " + (data.address || "Chưa có"),
       "☕ Món quan tâm:   " + (data.favorite_item || "Chưa xác định"),
       "🔥 Mức độ:        HOT",
-      "⏰ Thời gian:     " + timestamp,
-      "",
-      "→ Liên hệ NGAY để chốt đơn!",
-      "",
-      "Email tự động từ hệ thống Cof fi AI."
+      "⏰ Thời gian:     " + timestamp, "",
+      "→ Liên hệ NGAY để chốt đơn!"
     ].join("\n");
-
     MailApp.sendEmail(CONFIG.ALERT_EMAIL, subject, body);
-  } catch (err) {
-    console.error("Hot lead email failed:", err);
-  }
+  } catch (err) { console.error("Hot lead email failed:", err); }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -811,11 +797,8 @@ function formatHeader(sheet, colCount) {
 function findRowByCol(sheet, colIndex, value) {
   var data = sheet.getDataRange().getValues();
   var target = String(value).toLowerCase().trim();
-
   for (var i = 1; i < data.length; i++) {
-    if (String(data[i][colIndex]).toLowerCase().trim() === target) {
-      return i + 1;
-    }
+    if (String(data[i][colIndex]).toLowerCase().trim() === target) return i + 1;
   }
   return -1;
 }
@@ -823,9 +806,7 @@ function findRowByCol(sheet, colIndex, value) {
 function buildLookupMap(sheet, keyCol, valueCol) {
   var data = sheet.getDataRange().getValues();
   var map = {};
-  for (var i = 1; i < data.length; i++) {
-    map[data[i][keyCol]] = data[i][valueCol];
-  }
+  for (var i = 1; i < data.length; i++) map[data[i][keyCol]] = data[i][valueCol];
   return map;
 }
 
