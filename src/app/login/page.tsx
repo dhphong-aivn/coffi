@@ -129,7 +129,7 @@ export default function LoginPage() {
           {/* Demo hint */}
           <div className="mt-6 pt-5 border-t border-outline-variant/10">
             <p className="text-[11px] text-secondary/50 font-body text-center">
-              Demo: admin@gmail.com / 123456
+              Demo: phong1992002@gmail.com / 123456
             </p>
           </div>
         </div>
